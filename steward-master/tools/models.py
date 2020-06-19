@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField, HStoreField, JSONField
 from django.db import models
 # local
 from platforms.models import BroadworksPlatform
-from steward.storage import ProtectedFileStorage
+from toolbox.storage import ProtectedFileStorage
 
 
 class Process(models.Model):

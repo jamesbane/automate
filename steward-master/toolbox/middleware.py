@@ -2,7 +2,7 @@ import pytz
 
 from django.utils import timezone
 
-from steward.models import Profile
+from toolbox.models import Profile
 
 
 class TimezoneMiddleware(object):

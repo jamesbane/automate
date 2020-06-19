@@ -1,11 +1,5 @@
-# Steward
-A web application to provide automation solutions.
-
-### stew·ard
-/ˈst(y)o͞oərd/  
-*noun:* an official appointed to supervise arrangements or keep order at a large public event  
-*verb:* manage or look after (another's property).
-
+# Toolbox
+A web application to provide a toolbox of automation solutions.
 
 ## Development Requirements
 A virtual environment for python is **strongly** recommended!
@@ -42,13 +36,11 @@ source venv/bin/activate
 
 ### NPM Packages
 ```
-npm install bower
+npm install
 ```
 
-### Bower Packages
-```
-bower install
-```
+### Local Docker Setup
+TBD?
 
 ### Python Packages
 ```
@@ -56,17 +48,8 @@ pip install -r requirements.txt
 ```
 
 ### PostgreSQL
-The database user must be a superuser in order for the initial migration to work:
-```
--- Create a new user:
-createuser --superuser <user_name>
--- Alter an existing user:
-ALTER ROLE <user_name> SUPERUSER;
--- Alter an existing users password:
-ALTER USER steward PASSWORD 'steward';
--- Grant privs to a user for the entire database:
-GRANT ALL ON DATABASE steward TO steward;
-```
+Create a database.
+Grant the user permissions to the database.
 
-### Migrations
+### Execute Migrations
 python manage.py migrate

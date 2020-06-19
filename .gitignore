@@ -1,1 +1,7 @@
 postgresql-9.5.20-2-linux-x64-binaries.tar.gz
+venv/
+node_modules/
+package-lock.json
+*.lock
+.env
+.idea/

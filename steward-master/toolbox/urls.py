@@ -4,11 +4,11 @@ from django.contrib import admin
 import django.views.static
 
 import api.urls
-import steward.views
+import toolbox.views
 
 
 urlpatterns = [
-    url(r'^$', steward.views.IndexRedirectView.as_view(), name='index'),
+    url(r'^$', toolbox.views.IndexRedirectView.as_view(), name='index'),
 
     url(r'^accounts/', include('django.contrib.auth.urls', namespace='auth')),
     url(r'^dashboards/', include('dashboard.urls', namespace='dashboard')),
@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^dms/', include('dms.urls', namespace='dms')),
     url(r'^routing/', include('routing.urls', namespace='routing')),
     url(r'^tools/', include('tools.urls', namespace='tools')),
-    url(r'^protected/(?P<path>.*)$', steward.views.ProtectedFileView.as_view()),
+    url(r'^protected/(?P<path>.*)$', toolbox.views.ProtectedFileView.as_view()),
 
     # Django Rest Framework
     url(r'^api/', include(api.urls, namespace='api')),

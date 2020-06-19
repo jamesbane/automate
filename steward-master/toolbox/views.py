@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.static import serve
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 
-from steward.models import GroupDefaultView
+from toolbox.models import GroupDefaultView
 
 
 class IndexRedirectView(RedirectView):
