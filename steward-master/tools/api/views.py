@@ -19,8 +19,8 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 # from lib.pypalladion.palladion import Palladion
 
 # Application
-# from tools import models
-# from tools.api import serializers
+from tools import models
+from tools.api import serializers
 
 
 class ToolsRootView(APIView):
