@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.template import engines
 from django.core.validators import RegexValidator
@@ -26,7 +26,7 @@ class Route(models.Model):
 
 
 class Record(models.Model):
-    route = models.ForeignKey('Route', related_name='records')
+    route = models.ForeignKey('Route',on_delete=models.SET_NULL, null =True, related_name='records')
     order = models.IntegerField(default=100)
     preference = models.IntegerField(default=10)
     flags = models.CharField(max_length=16, default='U')
@@ -76,7 +76,7 @@ class Transmission(models.Model):
 
 
 class Number(models.Model):
-    route = models.ForeignKey('Route', related_name='numbers')
+    route = models.ForeignKey('Route',on_delete=models.SET_NULL, null=True, related_name='numbers')
     cc = models.SmallIntegerField(default=1)
     number = models.CharField(max_length=64)
     modified = models.DateTimeField(auto_now=True)
@@ -120,7 +120,7 @@ class Number(models.Model):
 class NumberHistory(models.Model):
     cc = models.SmallIntegerField(default=1)
     number = models.CharField(max_length=64)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,null=True, on_delete=models.SET_NULL, related_name='+')
     modified = models.DateTimeField(auto_now=True)
     action = models.CharField(max_length=256)
 
@@ -141,7 +141,7 @@ class FraudBypass(models.Model):
 class FraudBypassHistory(models.Model):
     cc = models.SmallIntegerField(default=1)
     number = models.CharField(max_length=64)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,null=True, on_delete=models.SET_NULL, related_name='+')
     modified = models.DateTimeField(auto_now=True)
     action = models.CharField(max_length=256)
 
@@ -151,8 +151,8 @@ class FraudBypassHistory(models.Model):
 
 class OutboundRoute(models.Model):
     number = models.CharField(max_length=128, unique=True)
-    end_office_route = models.ForeignKey('Route', related_name='+',  limit_choices_to={'type': Route.TYPE_CHOICE_OUTBOUND})
-    long_distance_route = models.ForeignKey('Route', related_name='+', limit_choices_to={'type': Route.TYPE_CHOICE_OUTBOUND})
+    end_office_route = models.ForeignKey('Route',null=True,on_delete=models.SET_NULL, related_name='+',  limit_choices_to={'type': Route.TYPE_CHOICE_OUTBOUND})
+    long_distance_route = models.ForeignKey('Route',null =True, on_delete=models.SET_NULL, related_name='+', limit_choices_to={'type': Route.TYPE_CHOICE_OUTBOUND})
     comment = models.CharField(max_length=128, blank=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -162,7 +162,7 @@ class OutboundRoute(models.Model):
 
 class OutboundRouteHistory(models.Model):
     number = models.CharField(max_length=128)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,null=True, on_delete=models.SET_NULL, related_name='+')
     modified = models.DateTimeField(auto_now=True)
     action = models.CharField(max_length=256)
 
@@ -181,7 +181,7 @@ class RemoteCallForward(models.Model):
 
 class RemoteCallForwardHistory(models.Model):
     called_number = models.CharField(max_length=128)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,null=True,on_delete=models.SET_NULL, related_name='+')
     modified = models.DateTimeField(auto_now=True)
     action = models.CharField(max_length=256)
 

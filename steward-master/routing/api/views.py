@@ -6,8 +6,11 @@ import requests
 from django.conf import settings
 
 # Third Party
+
 import django_filters
-from rest_framework.filters import FilterSet
+# updated from rest_framework.filters import FilterSet
+# to django_filters.rest_framework import FilterSet
+from django_filters.rest_framework import FilterSet
 from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.mixins import (
     CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin,
