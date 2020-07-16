@@ -86,10 +86,3 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
-
-### Possible issue with Auth
-1. remove ```namespace='auth'``` from  line ```re_path(r'^accounts/', include('django.contrib.auth.urls', ))``` in ```steward/urls.py```, because of that, follow 2. after installing a new django
-
-2. put ```app_name = 'auth'``` inside ```django.contrib.auth.urls```
-Its in the following path.
-```Lib\site-packages\django\contrib\auth\urls.py```
