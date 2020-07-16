@@ -12,28 +12,30 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import json
-import ldap
+#import ldap
 import string
 import random
 import logging
 
-from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+#from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 
-
+#
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SETTINGS_FILE = os.path.abspath(os.path.join(BASE_DIR, "settings.json"))
-if os.path.isfile(SETTINGS_FILE):
-    with open(SETTINGS_FILE) as f:
-        env = json.loads(f.read())
-else:
-    raise Exception('Could not open settings.json')
+#SETTINGS_FILE = os.path.abspath(os.path.join(BASE_DIR, "settings.json"))
+#if os.path.isfile(SETTINGS_FILE):
+ #   with open(SETTINGS_FILE) as f:
+ #       env = json.loads(f.read())
+#else:
+ #   raise Exception('Could not open settings.json')
 
 
 # =====================================
 # Core settings
 # =====================================
-if 'secret_key' in env['django']:
+SECRET_KEY = "hdhdhdhdue38939"
+DEBUG = True
+'''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
     SECRET_KEY = ''.join([random.SystemRandom().choice("{}{}{}".format(string.ascii_letters, string.digits, string.punctuation)) for i in range(50)])
@@ -41,7 +43,7 @@ else:
     with open(SETTINGS_FILE, 'w') as f:
         json.dump(env, f, sort_keys=True, indent=4)
 DEBUG = env['django']['debug']
-ALLOWED_HOSTS = env['django']['allowed_hosts']
+ALLOWED_HOSTS = env['django']['allowed_hosts']'''
 
 
 # =====================================
@@ -60,10 +62,10 @@ INSTALLED_APPS = [
 
     # Project
     'dashboard',
-    #'deploy',
-    #'dms',
+    'deploy',
+    'dms',
     'platforms',
-    #'routing',
+    'routing',
     'steward',
     'tools',
 
@@ -74,13 +76,13 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
 ]
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -109,24 +111,9 @@ WSGI_APPLICATION = 'steward.wsgi.application'
 # Authentication
 # =====================================
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
+#    'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-AUTH_LDAP_SERVER_URI = "ldap://ds01.ipa.cspirevoice.com"
-AUTH_LDAP_BIND_DN = "uid=steward,cn=sysaccounts,cn=etc,dc=ipa,dc=cspirevoice,dc=com"
-AUTH_LDAP_BIND_PASSWORD = "najica123"
-AUTH_LDAP_GROUP_TYPE = GroupOfNamesType(name_attr="cn")
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch("cn=groups,cn=accounts,dc=ipa,dc=cspirevoice,dc=com",
-    ldap.SCOPE_SUBTREE, "(objectClass=groupOfNames)"
-)
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,cn=users,cn=accounts,dc=ipa,dc=cspirevoice,dc=com"
-AUTH_LDAP_USER_ATTR_MAP = {"first_name": "givenName", "last_name": "sn", "email": "mail"}
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": "cn=steward,cn=groups,cn=accounts,dc=ipa,dc=cspirevoice,dc=com",
-    "is_staff": "cn=admins,cn=groups,cn=accounts,dc=ipa,dc=cspirevoice,dc=com",
-    "is_superuser": "cn=admins,cn=groups,cn=accounts,dc=ipa,dc=cspirevoice,dc=com",
-}
-AUTH_LDAP_MIRROR_GROUPS = True
 
 # logger = logging.getLogger('django_auth_ldap')
 # logger.addHandler(logging.StreamHandler())
@@ -148,19 +135,19 @@ AUTH_LDAP_MIRROR_GROUPS = True
 #}
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'USER': env['database']['username'],
-        'PASSWORD': env['database']['password'],
-        'HOST': env['database']['host'],
-        'PORT': env['database']['port'],
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'steward',
+        'USER': 'postgres',
+        'PASSWORD': 'password1',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
 # =====================================
 # Platforms
 # =====================================
-PLATFORMS = env['platforms']
+#PLATFORMS = env['platforms']
 
 
 # =====================================
@@ -204,7 +191,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # =====================================
 STATIC_URL = '/static/'
-STATIC_ROOT = '{}/static/'.format(BASE_DIR)
+#STATIC_ROOT = '{}/static/'.format(BASE_DIR)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '{}/media/'.format(BASE_DIR)
 PROTECTED_URL = '/protected/'
@@ -214,7 +202,16 @@ PROTECTED_ROOT = '{}/protected/'.format(BASE_DIR)
 # =====================================
 # Redis Queues
 # =====================================
+
 RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT-TIMEOUT': 360,
+    }
+}
+'''RQ_QUEUES = {
     'default': {
         'HOST': env['redis']['host'],
         'PORT': env['redis']['port'],
@@ -224,13 +221,13 @@ RQ_QUEUES = {
         'HOST': env['redis']['host'],
         'PORT': env['redis']['port'],
         'DB': env['redis']['db'],
-    }
+    }'''
 #    'deploy': {
 #        'HOST': env['redis']['host'],
 #        'PORT': env['redis']['port'],
 #        'DB': env['redis']['db'],
 #    },
-}
+'''}'''
 
 
 # =====================================
@@ -242,8 +239,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+    #added django_filters.rest_framework.DjangoFilterBackend'
+    #after installing django_filters
+    # and removed 'rest_framework.filters.DjangoFilterBackend',
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_framework.filters.DjangoFilterBackend',
+        'django_filters.rest_framework.DjangoFilterBackend',
+        
         'rest_framework.filters.OrderingFilter',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -257,7 +258,7 @@ REST_FRAMEWORK = {
 # =====================================
 # Email
 # =====================================
-EMAIL_HOST = env['email']['smtp_server']
+'''EMAIL_HOST = env['email']['smtp_server']
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 DEFAULT_FROM_EMAIL = env['email']['from_address']
 SERVER_EMAIL = env['email']['from_address']
@@ -267,4 +268,4 @@ SERVER_EMAIL = env['email']['from_address']
 # Admins & Managers
 # =====================================
 ADMINS = env['admins']
-MANAGERS = ADMINS
+MANAGERS = ADMINS'''

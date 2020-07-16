@@ -1,7 +1,8 @@
-from django.conf.urls import url
+from django.urls import re_path
 import dashboard.views
 
+app_name ='dashboard'
 urlpatterns = [
-    url(r'^$', dashboard.views.EmptyDashboardView.as_view(), name='empty'),
-    url(r'^voip$', dashboard.views.VoipDashboardView.as_view(), name='voip'),
+    re_path(r'^$', dashboard.views.EmptyDashboardView.as_view(), name='empty'),
+   re_path(r'^voip$', dashboard.views.VoipDashboardView.as_view(), name='voip'),
 ]

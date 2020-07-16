@@ -42,17 +42,23 @@ source venv/bin/activate
 
 ### NPM Packages
 ```
-npm install bower
+npm install -g bower
 ```
 
 ### Bower Packages
 ```
 bower install
+
+bower init
+bower install bootstrap --save
+bower install jquery --save
+
 ```
 
 ### Python Packages
 ```
 pip install -r requirements.txt
+
 ```
 
 ### PostgreSQL
@@ -66,7 +72,15 @@ ALTER ROLE <user_name> SUPERUSER;
 ALTER USER steward PASSWORD 'steward';
 -- Grant privs to a user for the entire database:
 GRANT ALL ON DATABASE steward TO steward;
+
+(Or use the default superuser <postgres>)
+
+-- Create a database named "steward"
+Change the db setting in setting.py accordingly with your own database and password
+
 ```
 
 ### Migrations
 python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
