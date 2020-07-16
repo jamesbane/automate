@@ -135,8 +135,8 @@ AUTHENTICATION_BACKENDS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'steward',
-        'USER': 'postgres',
+        'NAME': 'toolbox',
+        'USER': 'toolbox',
         'PASSWORD': 'Layerstack1!',
         'HOST': 'localhost',
         'PORT': '5432',
