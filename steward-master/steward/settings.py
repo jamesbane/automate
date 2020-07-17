@@ -111,6 +111,10 @@ WSGI_APPLICATION = 'steward.wsgi.application'
 # Authentication
 # =====================================
 AUTHENTICATION_BACKENDS = [
+<<<<<<< HEAD
+=======
+#    'django_auth_ldap.backend.LDAPBackend',
+>>>>>>> 64d20b6c88783408d45aa28bdcd0933c90cc8e7e
     'django.contrib.auth.backends.ModelBackend',
 ]
 
