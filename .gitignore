@@ -1,4 +1,9 @@
 postgresql-9.5.20-2-linux-x64-binaries.tar.gz
+<<<<<<< HEAD
+=======
+__pycache__/
+.vscode/
+>>>>>>> e807925898d39b4116f9523dd33d624090f4cd12
 venv/
 node_modules/
 package-lock.json
