@@ -85,7 +85,3 @@ Change the db setting in setting.py accordingly with your own database and passw
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
-<<<<<<< HEAD
-=======
-```
->>>>>>> 64d20b6c88783408d45aa28bdcd0933c90cc8e7e
