@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import Http404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.generic import View
 from django.views.generic.base import RedirectView
 from django.core.exceptions import ObjectDoesNotExist

@@ -1,14 +1,13 @@
 {
   "name": "steward",
   "authors": [
-    "Morgan Humes <mhumes@cspire.com>"
+    "JJ Wager"
   ],
-  "description": "",
+  "description": "description",
   "main": "",
   "moduleType": [],
   "license": "None",
-  "homepage": "",
-  "private": true,
+  "homepage": "\"\"",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -18,10 +17,11 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "~3.3.6",
+    "bootstrap": "^3.4.1",
     "font-awesome": "~4.5.0",
-    "jquery": "~2.2.0",
+    "jquery": "^3.5.1",
     "Chart.js": "^1.0.2",
     "js-cookie": "^2.1.2"
-  }
+  },
+  "private": true
 }

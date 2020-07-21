@@ -61,12 +61,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='device',
             name='device_type',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='devices', to='deploy.DeviceType'),
+            field=models.ForeignKey(null=True, on_delete=models.CASCADE, related_name='devices', to='deploy.DeviceType'),
         ),
         migrations.AddField(
             model_name='device',
             name='site',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='deploy.Site'),
+            field=models.ForeignKey(null=True, on_delete=models.CASCADE, to='deploy.Site'),
         ),
         migrations.AddField(
             model_name='device',

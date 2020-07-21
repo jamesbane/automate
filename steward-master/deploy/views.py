@@ -5,7 +5,7 @@ import importlib
 # Django
 from django.utils import timezone
 from django.shortcuts import render
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.generic.list import ListView
 from django.core.exceptions import PermissionDenied
 from django.views.generic.detail import (

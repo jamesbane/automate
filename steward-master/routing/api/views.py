@@ -6,8 +6,11 @@ import requests
 from django.conf import settings
 
 # Third Party
+
 import django_filters
-from rest_framework.filters import FilterSet
+# updated from rest_framework.filters import FilterSet
+# to django_filters.rest_framework import FilterSet
+from django_filters.rest_framework import FilterSet
 from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.mixins import (
     CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin,
@@ -53,8 +56,8 @@ class RecordViewSet(ModelViewSet):
 
 
 class NumberFilter(FilterSet):
-    modified_gt = django_filters.IsoDateTimeFilter(name='modified', lookup_type='gt')
-    modified_lte = django_filters.IsoDateTimeFilter(name='modified', lookup_type='lte')
+    modified_gt = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='gt')
+    modified_lte = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='lte')
     class Meta:
         model = models.Number
         fields = ['cc', 'number', 'route', 'active', 'modified_gt', 'modified_lte']
@@ -169,8 +172,8 @@ class NumberDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class FraudBypassFilter(FilterSet):
-    modified_gt = django_filters.IsoDateTimeFilter(name='modified', lookup_type='gt')
-    modified_lte = django_filters.IsoDateTimeFilter(name='modified', lookup_type='lte')
+    modified_gt = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='gt')
+    modified_lte = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='lte')
     class Meta:
         model = models.FraudBypass
         fields = ['cc', 'number', 'modified_gt', 'modified_lte']
@@ -255,8 +258,8 @@ class FraudBypassDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class OutboundRouteFilter(FilterSet):
-    modified_gt = django_filters.IsoDateTimeFilter(name='modified', lookup_type='gt')
-    modified_lte = django_filters.IsoDateTimeFilter(name='modified', lookup_type='lte')
+    modified_gt = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='gt')
+    modified_lte = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='lte')
     class Meta:
         model = models.OutboundRoute
         fields = ['number', 'end_office_route', 'long_distance_route', 'modified_gt', 'modified_lte']
@@ -341,8 +344,8 @@ class OutboundRouteDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class RemoteCallForwardFilter(FilterSet):
-    modified_gt = django_filters.IsoDateTimeFilter(name='modified', lookup_type='gt')
-    modified_lte = django_filters.IsoDateTimeFilter(name='modified', lookup_type='lte')
+    modified_gt = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='gt')
+    modified_lte = django_filters.IsoDateTimeFilter(field_name='modified', lookup_expr='lte')
     class Meta:
         model = models.RemoteCallForward
         fields = ['called_number', 'forward_number', 'modified_gt', 'modified_lte']

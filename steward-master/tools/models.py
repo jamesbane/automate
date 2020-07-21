@@ -22,7 +22,7 @@ class Process(models.Model):
         (STATUS_RUNNING, 'Running'),
     )
     PLATFORM_BROADWORKS = 0
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='processes', verbose_name=('user'), null=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, related_name='processes', verbose_name=('user'), null=False)
     method = models.CharField(max_length=256, null=False)
     platform_type = models.SmallIntegerField(null=False)
     platform_id = models.IntegerField(null=False)
@@ -79,7 +79,7 @@ class Process(models.Model):
 
 
 class ProcessContent(models.Model):
-    process = models.ForeignKey('Process', related_name='content')
+    process = models.ForeignKey('Process',null=True, on_delete=models.CASCADE, related_name='content')
     tab = models.CharField(max_length=32)
     priority = models.PositiveSmallIntegerField(default=32767)
     raw = models.FileField(upload_to='process', storage=ProtectedFileStorage())
