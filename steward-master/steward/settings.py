@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'routing',
     'steward',
     'tools',
+    'sansayvcm_client',
 
     # Third Party
     'crispy_forms',
