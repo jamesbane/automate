@@ -21,6 +21,7 @@ urlpatterns = [
     re_path(r'^routing/', include('routing.urls', )),
     re_path(r'^tools/', include('tools.urls',)),
     re_path(r'^protected/(?P<path>.*)$', steward.views.ProtectedFileView.as_view()),
+    re_path(r'^sansay/', include('sansayvcm_client.urls',)),
 
     # Django Rest Framework
     re_path(r'^api/', include(api.urls, )),
