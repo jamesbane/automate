@@ -1,15 +1,19 @@
 #django
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views.generic.edit import FormView
 
 #Automate
 import sansayvcm_client.forms
-from lib.pyutil.django.mixins import ProcessFormMixin
 
 class IndexView(TemplateView):
     template_name = 'sansayvcm_client/index.html'
 
-class SansayVcmRequestView(ProcessFormMixin, TemplateView):
+class SansayVcmRequestView(FormView):
     template_name = 'sansayvcm_client/modify_route_table.html'
     form_class = sansayvcm_client.forms.ModifyRouteTableForm 
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        return super().form_valid(form)
