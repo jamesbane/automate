@@ -8,4 +8,7 @@ class EmptyDashboardView(LoginRequiredMixin, TemplateView):
 
 
 class VoipDashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "dashboard/voip.html"
+    template_name = "dashboards/voip.html"
+
+class HomeDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/home.html"
