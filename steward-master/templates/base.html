@@ -106,6 +106,41 @@
           </div>
       </header>
 
+      <div class="page-wrap">
+        <div class="app-sidebar colored">
+          <div class="sidebar-header">
+              <a class="header-brand" href="index.html">
+                  <div class="logo-img">
+                     <img src="{% static 'src/img/brand-white.svg' %}" class="header-brand-img" alt="lavalite"> 
+                  </div>
+                  <span class="text">AutoMate</span>
+              </a>
+              <button type="button" class="nav-toggle"><i data-toggle="expanded" class="ik ik-toggle-right toggle-icon"></i></button>
+              <button id="sidebarClose" class="nav-close"><i class="ik ik-x"></i></button>
+          </div>
+                          
+
+        <div class="sidebar-content">
+          <div class="nav-container">
+            <nav id="main-menu-navigation" class="navigation-main">
+              <div class="nav-item active">
+                <a href="index.html"><span>Dashboard</span></a>
+              </div>
+              <div class="nav-item has-sub">
+                <a href="javascript:void(0)"><i class="ik ik-box"></i><span>Tools</span></a>
+                <div class="submenu-content">
+                    <a href="" class="menu-item">Basic</a>
+                    <a href="pages/widget-statistic.html" class="menu-item">Statistic</a>
+                    <a href="pages/widget-data.html" class="menu-item">Data</a>
+                    <a href="pages/widget-chart.html" class="menu-item">Chart Widget</a>
+                    {% block tools_list %}{% endblock tools_list%}
+                </div>
+              </div>
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% block tools_content %}{% endblock tools_content %}
       <div class="container-fluid">
         {% block content %}{% endblock content %}
       </div>
