@@ -1,4 +1,5 @@
 #django
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
@@ -12,8 +13,11 @@ class IndexView(TemplateView):
 class SansayVcmRequestView(FormView):
     template_name = 'sansayvcm_client/modify_route_table.html'
     form_class = sansayvcm_client.forms.ModifyRouteTableForm 
+    success_url = '/sansay-vcm-request'
 
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        return super().form_valid(form)
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            print(request.POST)
+            return HttpResponseRedirect('/sansay/sansay-vcm-request')
+
