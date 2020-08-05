@@ -1,8 +1,10 @@
 {% extends 'tools/base.html' %}
 
 {% block tool_content %}
-  <h1 class="page-header">Fraud Compliance Reset</h1>
-  <div>
+  <div class="card-header justify-content-between">
+    <h2>Fraud Compliance Reset</h2>
+  </div>
+  <div class="card-body">
     <h2 class="text-primary"><i class="fa fa-info"></i> Documentation</h2>
     <p>This tool resets critical features, passwords and settings commonly found to be abused for fraudulent purposes. It can be run on either a Service Provider or an Enterprise.
        When run on a Service Provider, a Group is required. When running on an Enterprise, a group is optional. <strong>If no group is provided, it is assumed that all groups
@@ -16,30 +18,32 @@
 GroupOutgoingCallingPlanOriginatingModifyListRequest
 GroupOutgoingCallingPlanRedirectingModifyListRequest
 UserGetListInGroupRequest
-for each user:
-    UserOutgoingCallingPlanOriginatingModifyRequest
-    UserGetRequest19
-    GroupAccessDeviceGetRequest18sp1 or ServiceProviderAccessDeviceGetRequest18sp1
-    UserSharedCallAppearanceGetRequest16sp2
-    SystemDeviceTypeGetRequest19
-    Generate New User Password
-    Generate New Auth Username
-    Generate New Auth Password
-    GroupAccessDeviceResetRequest or ServiceProviderAccessDeviceResetRequest
-    UserModifyRequest17sp4(newUserPassword)
-    UserAuthenticationModifyRequest(newAuthUsername, newAuthPassword)
-    GroupCPEConfigRebuildDeviceConfigFileRequest or ServiceProviderCPEConfigRebuildDeviceConfigFileRequest
-    UserInterceptUserModifyRequest16(isActive=False)
+  for each user:
+      UserOutgoingCallingPlanOriginatingModifyRequest
+      UserGetRequest19
+      GroupAccessDeviceGetRequest18sp1 or ServiceProviderAccessDeviceGetRequest18sp1
+      UserSharedCallAppearanceGetRequest16sp2
+      SystemDeviceTypeGetRequest19
+      Generate New User Password
+      Generate New Auth Username
+      Generate New Auth Password
+      GroupAccessDeviceResetRequest or ServiceProviderAccessDeviceResetRequest
+      UserModifyRequest17sp4(newUserPassword)
+      UserAuthenticationModifyRequest(newAuthUsername, newAuthPassword)
+      GroupCPEConfigRebuildDeviceConfigFileRequest or ServiceProviderCPEConfigRebuildDeviceConfigFileRequest
+      UserInterceptUserModifyRequest16(isActive=False)
 GroupInterceptGroupModifyRequest16(isActive=False)</pre>
 
-    <h2 class="text-danger"><i class="fa fa-warning"></i> Invoke</h2>
+    <h2 class="text-danger"><i class="ik ik-alert-triangle"></i> Invoke</h2>
     <p><strong class="text-danger">WARNING This will disrupt service momentarily for most devices and will stop service on manually configured devices.</strong></p>
-    <div class="well">
-      <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <p><label></label><input id="submit" type="submit" value="Run"/></p>
-      </form>
+    <div class="card-body">
+      <div class="form-group row">
+        <form method="POST">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <p><label></label><input id="submit" type="submit" value="Run"/></p>
+        </form>
+      </div>
     </div>
   </div>
 {% endblock tool_content %}
