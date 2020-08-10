@@ -24,18 +24,47 @@ class VcmClient:
         url = self._baseUrl + "/ROME/webresources/hrs/" + self._action + "/VSXi_" + self._element + "?clusterID=" + cluster
         return url
 
-    def _getConfigFile(self):
+    def _getConfigFile(self, desc, number):
         xmlCfg = etree.parse('configs/route.xml')
         for field in xmlCfg.iter():
-            #alias.attrib['value'] = 'Test Cust 12345 5858675309'
             if field.tag == 'alias':
-                field.text = 'Test Cust 12345 5858675309'
+                field.text = desc
             if field.tag == 'digitMatch':
-                field.text = '5858675309'
+                field.text = number
 
-        print(etree.tostring(xmlCfg, pretty_print=True))
+        archive = io.BytesIO()
+        with ZipFile(archive, 'w') as zip_archive:
+            zip_archive.writestr('config.xml', str(etree.tostring(xmlCfg), 'utf-8'))
 
+        return archive
+
+    def _buildCurlReq(self, url):
+        crl = pycurl.Curl()
+        crl.setopt(crl.URL, url)
+        crl.setopt(crl.USERPWD, '%s:%s' %('dev301solutions', 'jL6WP6UP4RjdKn3F'))
+        crl.setopt(crl.CAINFO, certifi.where())
+        crl.setopt(pycurl.VERBOSE, True)
+    
+        return crl
+
+    def send(self, cluster, desc, number):
+        url = self._getVcmUrl(cluster)
+        cfg = self._getConfigFile(desc, number)
+
+        crl = self._buildCurlReq(url)
+        crl.setopt(crl.HTTPPOST, [
+            ('fileupload', (
+                crl.FORM_BUFFER, 'config.zip',
+                crl.FORM_BUFFERPTR, cfg.getvalue(),
+                #crl.FORM_FILE, 'config.zip', #use this for physical file upload vs from buffer
+            )),
+        ])
+
+        crl.perform()
+        print('Status: %d' % crl.getinfo(crl.RESPONSE_CODE))
+
+        crl.close()
 
 x = VcmClient('update', 'route')
-x._getConfigFile()
+x.send('2', 'Test Description', '8058846317')
 
