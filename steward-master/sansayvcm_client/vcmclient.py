@@ -47,6 +47,24 @@ class VcmClient:
     
         return crl
 
+    def _pushClusterConfig(self, cluster):
+        url = self._baseUrl + "/ROME/webresources/hrs/pushVSXiClusterConfig?clusterID=" + cluster + "&sbcIDs=2"
+        #buffer = io.BytesIO()
+
+        crl = pycurl.Curl()
+        crl.setopt(crl.URL, url)
+        crl.setopt(crl.USERPWD, '%s:%s' %('superuser', 'sansay'))
+        crl.setopt(crl.CAINFO, certifi.where())
+        crl.setopt(pycurl.VERBOSE, True)
+        crl.setopt(pycurl.POST, True)
+        #crl.setopt(crl.WRITEDATA, buffer)
+        crl.perform()
+        print('Status: %d' % crl.getinfo(crl.RESPONSE_CODE))
+        crl.close()
+
+        #with open('output.txt', 'wb') as f:
+        #    f.write(buffer.getbuffer())
+
     def send(self, cluster, desc, number):
         url = self._getVcmUrl(cluster)
         cfg = self._getConfigFile(desc, number)
@@ -65,6 +83,8 @@ class VcmClient:
 
         crl.close()
 
+        self._pushClusterConfig(cluster)
+
 x = VcmClient('update', 'route')
-x.send('2', 'Test Description', '8058846317')
+x.send('2', 'Test Client 301Dev', '8058846317')
 
