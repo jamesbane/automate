@@ -1,4 +1,5 @@
 #Python
+import os
 import io
 import certifi
 from urllib.parse import urlencode
@@ -25,7 +26,7 @@ class VcmClient:
         return url
 
     def _getConfigFile(self, desc, number):
-        xmlCfg = etree.parse('configs/route.xml')
+        xmlCfg = etree.parse(os.path.abspath('sansayvcm_client/configs/route.xml'))
         for field in xmlCfg.iter():
             if field.tag == 'alias':
                 field.text = desc
@@ -43,27 +44,32 @@ class VcmClient:
         crl.setopt(crl.URL, url)
         crl.setopt(crl.USERPWD, '%s:%s' %('dev301solutions', 'jL6WP6UP4RjdKn3F'))
         crl.setopt(crl.CAINFO, certifi.where())
-        crl.setopt(pycurl.VERBOSE, True)
+        #crl.setopt(pycurl.VERBOSE, True)
     
         return crl
 
     def _pushClusterConfig(self, cluster):
         url = self._baseUrl + "/ROME/webresources/hrs/pushVSXiClusterConfig?clusterID=" + cluster + "&sbcIDs=2"
-        #buffer = io.BytesIO()
+        buffer = io.BytesIO()
 
-        crl = pycurl.Curl()
-        crl.setopt(crl.URL, url)
-        crl.setopt(crl.USERPWD, '%s:%s' %('superuser', 'sansay'))
-        crl.setopt(crl.CAINFO, certifi.where())
-        crl.setopt(pycurl.VERBOSE, True)
-        crl.setopt(pycurl.POST, True)
-        #crl.setopt(crl.WRITEDATA, buffer)
-        crl.perform()
-        print('Status: %d' % crl.getinfo(crl.RESPONSE_CODE))
-        crl.close()
+        postData = {'clusterID': cluster, 'sbcIDs': '2'}
 
-        #with open('output.txt', 'wb') as f:
-        #    f.write(buffer.getbuffer())
+        psh = pycurl.Curl()
+        psh.setopt(psh.URL, url)
+        psh.setopt(psh.USERPWD, '%s:%s' %('superuser', 'sansay'))
+        psh.setopt(psh.CAINFO, certifi.where())
+        #psh.setopt(pycurl.VERBOSE, True)
+        psh.setopt(psh.POSTFIELDS, urlencode(postData))
+        psh.setopt(pycurl.WRITEDATA, buffer)
+        
+        psh.perform()
+        status = psh.getinfo(psh.RESPONSE_CODE)
+        psh.close()
+
+        body = buffer.getvalue()
+        print(body.decode('utf-8'))
+
+        return status
 
     def send(self, cluster, desc, number):
         url = self._getVcmUrl(cluster)
@@ -79,12 +85,13 @@ class VcmClient:
         ])
 
         crl.perform()
-        print('Status: %d' % crl.getinfo(crl.RESPONSE_CODE))
-
+        status = crl.getinfo(crl.RESPONSE_CODE)
         crl.close()
 
         self._pushClusterConfig(cluster)
+        return status
 
 x = VcmClient('update', 'route')
-x.send('2', 'Test Client 301Dev', '8058846317')
+x.send('2', 'Test Client Dev301Solutions', '8058845678')
+#x._pushClusterConfig('2')
 
