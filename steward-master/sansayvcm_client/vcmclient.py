@@ -2,10 +2,13 @@
 import os
 import io
 import certifi
+import pycurl
+
+from datetime import datetime
 from urllib.parse import urlencode
 from zipfile import ZipFile
 from lxml import etree
-import pycurl
+from sansayvcm_client.models import RouteTableLog 
 
 class VcmClient:
 
@@ -20,6 +23,18 @@ class VcmClient:
         # Will there be other elements allowed?
         if element in ['route']:
             self._element = element
+
+    def _logVcmRequest(self, req, resp):
+        now = datetime.now()
+        xml = req.get('xmlcfg')
+        cluster = req.get('cluster_id')
+        number = req.get('number')
+        action = req.get('action')
+        status = resp.get('status')
+
+        log = RouteTableLog(cluster_id=cluster, number=number, action=action, xmlcfg=xml, result_status=status, created=now)
+        log.save()
+        return
 
     def _getVcmUrl(self, cluster):
         url = self._baseUrl + "/ROME/webresources/hrs/" + self._action + "/VSXi_" + self._element + "?clusterID=" + cluster
@@ -67,8 +82,6 @@ class VcmClient:
         psh.close()
 
         body = buffer.getvalue()
-        print(body.decode('utf-8'))
-
         return status
 
     def send(self, cluster, desc, number):
@@ -89,9 +102,15 @@ class VcmClient:
         crl.close()
 
         self._pushClusterConfig(cluster)
+
+        # Log the request/response
+        req = {"cluster_id": cluster, "number": number, "action": "update", "xmlcfg": cfg.getvalue() }
+        resp = {"status": status}
+        self._logVcmRequest(req, resp)
+
         return status
 
-x = VcmClient('update', 'route')
-x.send('2', 'Test Client Dev301Solutions', '8058845678')
+#x = VcmClient('update', 'route')
+#x.send('2', 'Test Client Dev301Solutions', '8058845678')
 #x._pushClusterConfig('2')
 

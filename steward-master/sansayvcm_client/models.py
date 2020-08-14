@@ -27,12 +27,14 @@ class SansayCluster(models.Model):
 
 
 class RouteTableLog(models.Model):
-    route_table = models.CharField(max_length=32)
+    cluster_id = models.CharField(max_length=32)
     number = models.CharField(max_length=64)
     action = models.CharField(max_length=32)
+    xmlcfg = models.TextField(null=True)
     result_status = models.CharField(max_length=32)
-    result_data = models.TextField()
+    result_data = models.TextField(null=True)
     created = models.DateTimeField(null=True, default=None)
     
     class Meta:
         ordering = ('-created',)
+
