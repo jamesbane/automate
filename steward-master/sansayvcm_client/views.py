@@ -2,6 +2,7 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 #Automate
@@ -20,10 +21,6 @@ class SansayVcmRequestView(FormView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            log = RouteTableLog.objects.all()
-            for r in log:
-                print(r.__dict__)
-
             post = request.POST
 
             cluster = post.get('cluster')
@@ -35,4 +32,8 @@ class SansayVcmRequestView(FormView):
             print(result)
 
             return HttpResponseRedirect('/sansay/sansay-vcm-request')
+
+class VcmLogView(ListView):
+    model = RouteTableLog
+    paginate_by = 100
 

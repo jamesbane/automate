@@ -5,7 +5,7 @@
     <div class="col-sm-3 col-md-2 sidebar">
         <ul class="nav nav-sidebar">
             <li class="header">Routing Tables</li>
-            {% url 'sansayvcm_client:logs' as the_url %}
+            {% url 'sansayvcm_client:vcm-route-logs' as the_url %}
             <li {% if request.get_full_path == the_url %}class="active"{% endif %}>
                 <a href="{{ the_url }}">
                     Routing Logs

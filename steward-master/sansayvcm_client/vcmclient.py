@@ -104,7 +104,11 @@ class VcmClient:
         self._pushClusterConfig(cluster)
 
         # Log the request/response
-        req = {"cluster_id": cluster, "number": number, "action": "update", "xmlcfg": cfg.getvalue() }
+        with ZipFile(cfg) as z:
+            with z.open('config.xml') as f:
+                xmlstr = f.read().decode("utf-8")
+
+        req = {"cluster_id": cluster, "number": number, "action": "update", "xmlcfg": xmlstr }
         resp = {"status": status}
         self._logVcmRequest(req, resp)
 
