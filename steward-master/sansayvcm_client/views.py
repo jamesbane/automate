@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
+from django.contrib.staticfiles.templatetags.staticfiles import static
 
 #Automate
 import sansayvcm_client.forms
@@ -24,16 +25,16 @@ class SansayVcmRequestView(FormView):
             post = request.POST
 
             cluster = post.get('cluster')
+            desc = post.get('alias')
             did = post.get('did')
-            desc = 'Test 301Dev Number'
 
             client = VcmClient('update', 'route')
             result = client.send(cluster, desc, did)
-            print(result)
 
             return HttpResponseRedirect('/sansay/sansay-vcm-request')
 
 class VcmLogView(ListView):
     model = RouteTableLog
     paginate_by = 100
+    javascript = static('sansayvcm_client/routetablelog_list.js')
 
