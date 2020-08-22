@@ -1,8 +1,11 @@
 {% extends 'tools/base.html' %}
 
 {% block tool_content %}
-  <h1 class="page-header">Device Specific Migration</h1>
-  <div>
+  
+  <div class="card-header justify-content-between">
+    <h2>Device Specific Migration</h2>
+  </div>
+  <div class="card-body">
     <h2 class="text-primary"><i class="fa fa-info"></i> Documentation</h2>
     <p>This tool migrates BroadWorks Polycom Devices from their generic form to their respective specific Device Type based upon the current registered User Agent.
        When run on a Service Provider, a Group is required. When running on an Enterprise, a group is optional. <strong>If no group is provided, it is assumed that all groups
@@ -52,7 +55,7 @@ for each group:
             GroupAccessDeviceModifyUserRequest
             # Success!</pre>
 
-    <h2 class="text-danger"><i class="fa fa-warning"></i> Invoke</h2>
+    <h3 class="text-danger"><i class="ik ik-alert-triangle"></i> </h3>
     <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
     <div class="well">
       <form method="POST">
