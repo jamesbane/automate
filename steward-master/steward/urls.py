@@ -14,12 +14,12 @@ urlpatterns = [
   re_path(r'^$', steward.views.IndexRedirectView.as_view(), name='index'),
 
     re_path(r'^accounts/', include('django.contrib.auth.urls',  )),
-    re_path(r'^dashboards/', include('dashboard.urls', )),
+    re_path(r'^dashboard/', include('dashboard.urls', ),name='dashboard-url'),
     re_path(r'^deploy/', include('deploy.urls', )),
     re_path(r'^django-rq/', include('django_rq.urls')),
     re_path(r'^dms/', include('dms.urls', )),
     re_path(r'^routing/', include('routing.urls', )),
-    re_path(r'^tools/', include('tools.urls',)),
+    re_path(r'^tools/', include('tools.urls',),name='tools-url'),
     re_path(r'^protected/(?P<path>.*)$', steward.views.ProtectedFileView.as_view()),
     re_path(r'^sansay/', include('sansayvcm_client.urls',)),
 

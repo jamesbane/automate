@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^$', toolbox.views.IndexRedirectView.as_view(), name='index'),
 
     url(r'^accounts/', include('django.contrib.auth.urls', namespace='auth')),
-    url(r'^dashboards/', include('dashboard.urls', namespace='dashboard')),
+    url(r'^dashboard/', include('dashboard.urls', namespace='dashboard')),
     url(r'^deploy/', include('deploy.urls', namespace='deploy')),
     url(r'^django-rq/', include('django_rq.urls')),
     url(r'^dms/', include('dms.urls', namespace='dms')),
