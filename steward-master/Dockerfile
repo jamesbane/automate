@@ -4,8 +4,13 @@ RUN apt-get update && apt-get install -y \
             gcc \
             libldap2-dev \
             libsasl2-dev \
-            libssl-dev
+            libssl-dev \
+            libpq-dev \
+            libssl-dev \
+            libcurl4-openssl-dev \
+            python3-dev
 
+RUN pip install --upgrade pip
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 COPY . /src

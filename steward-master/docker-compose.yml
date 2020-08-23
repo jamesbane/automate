@@ -32,9 +32,9 @@ services:
   db:
     image: postgres:10.6-alpine
     environment:
-      POSTGRES_DB: steward
-      POSTGRES_USER: steward
-      POSTGRES_PASSWORD: steward
+      POSTGRES_DB: toolbox 
+      POSTGRES_USER: toolbox 
+      POSTGRES_PASSWORD: Layerstack1!
     volumes:
       - ./volumes/postgres/initdb.d:/docker-entrypoint-initdb.d
   redis:
