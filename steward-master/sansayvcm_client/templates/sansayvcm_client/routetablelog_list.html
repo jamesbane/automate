@@ -1,48 +1,48 @@
 {% extends 'sansayvcm_client/index.html' %}
 
 {% block tool_content %}
-<div class="col-md-12">
-    <div class="panel panel-primary">
-        <div class="panel-heading">VCM Request Logs</div>
-        <div class="panel-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="col-md-1">Number</th>
-                        <th class="col-md-1">Cluster</th>
-                        <th class="col-md-1">Action</th>
-                        <th class="col-md-6">XML Config</th>
-                        <th class="col-md-1">Status</th>
-                        <th class="col-md-2">Transaction Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for object in object_list %}
-                    <tr>
-                        <td>{{object.number}}</td>
-                        <td>{{object.cluster_id}}</td>
-                        <td>{{object.action}}</td>
-                        <td>
-                            <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="bottom">
-                                  XML Config
-                            </button>
-                            <span class="hidden"><p><pre>{{object.xmlcfg}}</pre></p></span>
-                        </td>
-                        <td>{{object.result_status}}</td>
-                        <td>{{object.created}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+
+<div class="card">
+    <div class="card-header">VCM Request Logs</div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Cluster</th>
+                    <th>Action</th>
+                    <th>XML Config</th>
+                    <th>Status</th>
+                    <th>Transaction Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                <tr>
+                    <td>{{object.number}}</td>
+                    <td>{{object.cluster_id}}</td>
+                    <td>{{object.action}}</td>
+                    <td>
+                        <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="bottom">
+                                XML Config
+                        </button>
+                        <span class="hidden"><p><pre>{{object.xmlcfg}}</pre></p></span>
+                    </td>
+                    <td>{{object.result_status}}</td>
+                    <td>{{object.created}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
 {% endblock tool_content %}
 
 {% block javascript %}
     {{ block.super }}
     <script type="text/javascript">
-        $().ready( function() {
+        $(document).ready( function() {
             $(function() {
                 $('[data-toggle="popover"]').popover({
                     html: true,
