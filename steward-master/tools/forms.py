@@ -9,6 +9,7 @@ from platforms.models import BroadworksPlatform
 class BroadworksPlatformForm(forms.Form):
     platform = forms.ModelChoiceField(label="Platform", queryset=BroadworksPlatform.objects.all())
 
+    
 
 class TypedProviderGroupForm(BroadworksPlatformForm):
     PROVIDER_TYPE_CHOICE_ENTERPRISE = 'Enterprise'

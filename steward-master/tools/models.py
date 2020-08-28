@@ -25,7 +25,7 @@ class Process(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, related_name='processes', verbose_name=('user'), null=False)
     method = models.CharField(max_length=256, null=False)
     platform_type = models.SmallIntegerField(null=False)
-    platform_id = models.IntegerField(null=False)
+    platform_id = models.ForeignKey(BroadworksPlatform,on_delete=models.CASCADE)
     parameters = JSONField()
     start_timestamp = models.DateTimeField(null=False,auto_now=True)
     end_timestamp = models.DateTimeField(null=True)
