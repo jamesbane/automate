@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 
 {% block tools_list %}
-        <a href="pages/widget-statistic.html" class="menu-item">Statistic</a>
-        <a href="pages/widget-data.html" class="menu-item">Data</a>
-        <a href="pages/widget-chart.html" class="menu-item">word Widget</a>
+
         {% if perms.tools.process_call_park_pickup_configurator_exec %}
           {% url 'tools:call-park-pickup-configurator' as the_url %}
             <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}" >

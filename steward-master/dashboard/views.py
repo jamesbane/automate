@@ -24,7 +24,6 @@ class Registration(generic.View):
         else:
             return render(request,'dashboard/register.html')
 
-    
     def post(self,request):
         try:
             username = request.POST['username']
@@ -34,7 +33,7 @@ class Registration(generic.View):
                 messages.error(request,'User with this email or username already exist')
                 return redirect('/dashboard/register')
             else:
-                User.objects.create(username=username,email=email,password=password)
+                User.objects.create_user(username=username,email=email,password=password)
                 messages.success(request,'Successfully Created user.')
                 return redirect('/accounts/login')
         except Exception as e:

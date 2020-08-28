@@ -142,11 +142,11 @@ DATABASES = {'default': dj_database_url.config()}
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'toolbox',
 #         'USER': 'postgres',
-#         'PASSWORD': 'za123',
+#         'PASSWORD': 'za786001',
 #         'HOST': 'localhost',
 #         'PORT': '5432',
 #     }
-# }
+#  }
 
 # =====================================
 # Platforms

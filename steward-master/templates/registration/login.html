@@ -16,6 +16,16 @@
                             <div class="logo-centered">
                                 <a href="../dashboard"><img src="{% static 'images/Logo2.png' %}" alt=""></a>
                             </div>
+                            {% if messages %}
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible text-center" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
+                                </button>
+                                <strong>{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error{% else %}{{ message.tags|title }}{% endif %}!
+                                </strong> {{ message }}
+                            </div>
+                            {% endfor %}
+                            {% endif %}
                             {% if form.errors %}
                                 <div class="alert alert-danger"><strong>Warning!</strong> Authentication failed, wrong username or password.</div>
                             {% endif %}
@@ -32,15 +42,18 @@
                                 </div>
                                 <div class="row">
                                     <div class="col text-right">
-                                        <a href="forgot-password.html">Forgot Password ? </a>
+                                        <a href="/accounts/password_reset">Forgot Password ? </a>
                                     </div>
                                 </div>
                                 <div class="sign-btn text-center">
                                     <button class="btn btn-theme">Sign In</button>
                                 </div>
                             </form>
+                         
+
+
                             <div class="register">
-                                <p>Don't have an account? <a href="register.html">Create an account</a></p>
+                                <p>Don't have an account? <a href="/dashboard/register">Create an account</a></p>
                             </div>
                         </div>
                     </div>
