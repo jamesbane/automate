@@ -6,7 +6,8 @@ from django.db.models.signals import post_save
 class BroadworksPlatform(models.Model):
     name = models.CharField(max_length=32, unique=True)
     uri = models.CharField(max_length=1024)
-    user = models.ForeignKey(User,on_delete=models.CASCADE,null=True)
+    customer = models.ForeignKey(Group,on_delete=models.CASCADE,null=True)
+
 
     class Meta:
         ordering = ('name',)
@@ -18,17 +19,20 @@ class BroadworksPlatform(models.Model):
 def set_user_permission(sender, instance, **kwargs):
     try:
         from tools.models import Process
-        for p in instance.user.user_permissions.all():
-            print(p.codename)
-            if not Process.objects.filter(user = instance.user,
-            platform_type=instance.id,view_permission=p.name).exists():
-                Process(user=instance.user,
-                method='web',
-                platform_type=instance.id,
-                platform_id = instance,
-                parameters={},
-                status=0,
-                view_permission=p.name).save()
+        users = User.objects.filter(groups__id = instance.customer.id)
+        print(users)
+        for user in users:
+            for p in instance.customer.permissions.all():
+                user.user_permissions.add(p)
+                if not Process.objects.filter(user = user,
+                platform_type=instance.id,view_permission=p.name).exists():
+                    Process(user=user,
+                    method='web',
+                    platform_type=instance.id,
+                    platform_id = instance,
+                    parameters={},
+                    status=0,
+                    view_permission=p.name).save()
     except Exception as e:
         print('#################')
         print(e)
