@@ -28,7 +28,7 @@ from lib.pypalladion.palladion import Palladion
 from lib.pyutil.django.mixins import ProcessFormMixin
 from redis import Redis
 import rq
-
+from platforms.models import PlatformUsers
 
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'tools/index.html'
@@ -37,6 +37,15 @@ class IndexView(LoginRequiredMixin, TemplateView):
 class ProcessListView(LoginRequiredMixin, ListView):
     model = Process
     paginate_by = 100
+    template = 'process_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ProcessListView, self).get_context_data(**kwargs)
+        platform = PlatformUsers.objects.filter(users__in= [self.request.user]).values_list('platform__id', flat=True)
+        plat = [i for i in platform]
+        data =  self.model.objects.filter(platform_type__in=plat,user=self.request.user)
+        context['object_list'] = data
+        return context
 
     def get_queryset(self):
         queryset = super(ProcessListView, self).get_queryset()

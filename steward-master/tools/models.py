@@ -27,7 +27,7 @@ class Process(models.Model):
     platform_type = models.SmallIntegerField(null=False)
     platform_id = models.IntegerField(null=False)
     parameters = JSONField()
-    start_timestamp = models.DateTimeField(null=False)
+    start_timestamp = models.DateTimeField(null=False,auto_now=True)
     end_timestamp = models.DateTimeField(null=True)
     status = models.PositiveSmallIntegerField(null=False, default=STATUS_SCHEDULED, choices=CHOICES_STATUS)
     exception = models.TextField()

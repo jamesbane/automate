@@ -22,9 +22,9 @@
       {% for object in object_list %}
         <tr>
           <td><a href="{% url 'tools:process-detail' object.id %}">{{ object.id }}</a></td>
-          <td><a href="{% url 'tools:process-detail' object.id %}">{{ object.method }}</a></td>
-          <td>{{ object.platform }}</td>
-          <td>{{ object.user.get_full_name }}</td>
+          <td><a href="{% url 'tools:process-detail' object.id %}">{{ object.view_permission }}</a></td>
+          <td>{{ object.platform_type }}</td>
+          <td>{{ object.user}}</td>
           <td>{{ object.start_timestamp }}</td>
           <td>{{ object.end_timestamp }}</td>
           <td>{{ object.get_status_display }}</td>
