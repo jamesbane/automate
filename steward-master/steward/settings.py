@@ -16,6 +16,7 @@ import json
 import string
 import random
 import logging
+import dj_database_url
 
 #from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
@@ -45,7 +46,7 @@ else:
 DEBUG = env['django']['debug']
 ALLOWED_HOSTS = env['django']['allowed_hosts']'''
 
-
+ALLOWED_HOSTS = ['*']
 # =====================================
 # Application definition
 # =====================================
@@ -87,6 +88,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'steward.middleware.TimezoneMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    
 ]
 ROOT_URLCONF = 'steward.urls'
 TEMPLATES = [
@@ -130,18 +133,20 @@ AUTHENTICATION_BACKENDS = [
 #        'PASSWORD': env['database']['password'],
 #        'HOST': env['database']['host'],
 #        'PORT': env['database']['port'],
+# 
 #    }
 #}
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'toolbox',
-        'USER': 'toolbox',
-        'PASSWORD': 'Layerstack1!',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+DATABASES = {'default': dj_database_url.config()}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'toolbox',
+#         'USER': 'postgres',
+#         'PASSWORD': 'za123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # =====================================
 # Platforms
@@ -174,6 +179,8 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
 LOGOUT_URL = "/accounts/logout/"
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
 
 
 # =====================================
@@ -189,13 +196,23 @@ USE_TZ = True
 # =====================================
 # Static files (CSS, JavaScript, Images)
 # =====================================
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
-#STATIC_ROOT = '{}/static/'.format(BASE_DIR)
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '{}/media/'.format(BASE_DIR)
 PROTECTED_URL = '/protected/'
 PROTECTED_ROOT = '{}/protected/'.format(BASE_DIR)
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # =====================================

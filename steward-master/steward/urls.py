@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import include, re_path
 from django.contrib import admin
 import django.views.static
+from django.conf.urls.static import static
 
 import api.urls
 import steward.views
@@ -27,10 +28,11 @@ urlpatterns = [
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # Django admin
    re_path(r'^admin/', admin.site.urls),
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Allow serving media content if in debug mode
 if settings.DEBUG == True:
     urlpatterns += [
        re_path(r'^media/(?P<path>.*)$', django.views.static.serve, {'document_root': settings.MEDIA_ROOT,}),
     ]
+    
