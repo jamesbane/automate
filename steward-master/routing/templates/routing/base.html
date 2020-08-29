@@ -6,6 +6,7 @@
       <!-- Tools -->
       <ul class="nav nav-sidebar">
         <li class="header">Routing</li>
+        {% if perms.routing.change_number %}
         {% url 'routing:number-search' as the_url %}
         <li {% if request.get_full_path == the_url %}class="active"{% endif %}>
           <a href="{{ the_url }}">
@@ -15,6 +16,7 @@
             {% endif %}
             </a>
         </li>
+        {% endif %}
         {% if perms.routing.change_fraudbypass %}
           {% url 'routing:fraud-bypass-list' as the_url %}
           <li {% if request.get_full_path == the_url %}class="active"{% endif %}>
@@ -59,6 +61,7 @@
               </a>
           </li>
         {% endif %}
+        {% if perms.routing.change_transmission %}
         {% url 'routing:transmission-list' as the_url %}
         <li {% if request.get_full_path == the_url %}class="active"{% endif %}>
           <a href="{{ the_url }}">
@@ -68,6 +71,7 @@
             {% endif %}
             </a>
         </li>
+        {% endif %}
       </ul>
     </div>
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">

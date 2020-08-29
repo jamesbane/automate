@@ -109,7 +109,7 @@
       <div class="page-wrap">
         <div class="app-sidebar colored">
           <div class="sidebar-header">
-              <a class="header-brand" href="index.html">
+              <a class="header-brand" href="/">
                   <div class="logo-img">
                      <img src="{% static 'src/img/brand-white.svg' %}" class="header-brand-img" alt="lavalite"> 
                   </div>
@@ -129,6 +129,7 @@
                   {% block tools_list %}{% endblock tools_list %}
                 </div>
               </div>
+              {% if perms.routing.change_number %}
               <div class="nav-item has-sub {% if '/routing/' in request.get_full_path %} active open {% endif %}">
                 <a href="{% url 'routing:number-search' %}"><i class="ik ik-shuffle"></i><span>Routing</span></a>
                 <div class="submenu-content">
@@ -136,6 +137,7 @@
                   {% block routing_content %}{% endblock routing_content %}
                 </div>
               </div>
+              {% endif %}
               <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
                 <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
               </div>
