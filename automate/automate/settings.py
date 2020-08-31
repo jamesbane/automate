@@ -17,6 +17,7 @@ import string
 import random
 import logging
 import dj_database_url
+from decouple import config
 
 #from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
@@ -35,7 +36,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = True
+DEBUG = False
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -136,17 +137,20 @@ AUTHENTICATION_BACKENDS = [
 # 
 #    }
 #}
-DATABASES = {'default': dj_database_url.config()}
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'toolbox',
-#         'USER': 'postgres',
-#         'PASSWORD': 'za786001',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-#  }
+if not DEBUG:
+    DATABASES = {'default': dj_database_url.config()}
+else:
+    DATABASES = {
+    'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT')
+        }
+
+}
 
 # =====================================
 # Platforms

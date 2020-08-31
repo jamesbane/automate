@@ -1,1 +1,0 @@
-This directory will contain javascript-based web applications and tools, as well as webpack build scripts.
