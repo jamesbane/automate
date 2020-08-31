@@ -34,7 +34,7 @@ class Registration(generic.View):
                 return redirect('/dashboard/register')
             else:
                 User.objects.create_user(username=username,email=email,password=password)
-                messages.success(request,'Successfully Created user.')
+                messages.success(request,'Successfully Created user. Please contact your Provider administrator to be assigned to your account.')
                 return redirect('/accounts/login')
         except Exception as e:
             print(e)
