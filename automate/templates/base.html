@@ -138,14 +138,15 @@
                 </div>
               </div>
               {% endif %}
-              <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
-                <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
-              </div>
+
               <div class="nav-item has-sub {% if '/sansay/' in request.get_full_path %} active open {% endif %}">
-                  <a href="{% url 'sansayvcm_client:index' %}">Sansay VCM</a>
+                  <a href="{% url 'sansayvcm_client:index' %}"><i class="ik ik-shuffle"></i><span>VCM Route</span></a>
                   <div class="submenu-content">
                       {% block sansayvcm_items %}{% endblock sansayvcm_items %}
-                  </div<>
+                  </div>
+              </div>
+              <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
+                <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
               </div>
             </nav>
           </div>
