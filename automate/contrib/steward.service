@@ -1,0 +1,26 @@
+[Unit]
+Description=Automate Web Application
+Requires=nginx.service postgresql.service
+Before=nginx.service
+After=postgresql.service
+
+[Service]
+WorkingDirectory=/var/html/automate
+PIDFile=/run/automate.pid
+Type=forking
+KillMode=process
+Restart=always
+ExecStart=/var/html/automate/venv/bin/gunicorn                   \
+          --workers 4                                           \
+          --group ops                                           \
+          --user ops                                            \
+          --bind 127.0.0.1:8000                                 \
+          --pid /run/automate.pid                                \
+          --pythonpath=/var/html/automate                        \
+          --name automate                                        \
+          --error-logfile=/var/log/automate.error                \
+          --daemon                                              \
+          automate.wsgi
+
+[Install]
+WantedBy=multi-user.target

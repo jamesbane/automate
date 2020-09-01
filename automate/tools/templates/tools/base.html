@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block tools_list %}
+
+        {% if perms.tools.process_call_park_pickup_configurator_exec %}
+          {% url 'tools:call-park-pickup-configurator' as the_url %}
+            <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}" >
+              Call Park/Pickup Configurator
+            </a>
+        {% endif %}
+        {% if perms.tools.process_device_specific_migration_exec %}
+          {% url 'tools:device-specific-migration-tool' as the_url %}
+            <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
+              Device Specific Migration
+            </a>
+        {% endif %}
+        {% if perms.tools.process_fraud_compliance_reset_exec %}
+          {% url 'tools:fraud-compliance-reset-tool' as the_url %}
+            <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
+              Fraud Compliance Reset
+              {% if request.get_full_path == the_url %}
+                <span class="sr-only">(current)</span>
+              {% endif %}
+            </a>
+        {% endif %}
+{% endblock tools_list %}
+{% block content %}
+
+  <div class="row">
+
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      {% block tool_content %}{% endblock tool_content %}
+    </div>
+  </div>
+{% endblock content %}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Automate Deploy Workers
+Requires=postgresql.service redis.service
+After=postgresql.service redis.service
+
+[Service]
+WorkingDirectory=/var/html/automate
+Type=simple
+KillMode=process
+Restart=always
+ExecStart=/var/html/automate/venv/bin/python -O                  \
+          /var/html/automate/manage.py rqworker deploy           \
+          --pythonpath=/var/html/automate
+
+[Install]
+WantedBy=multi-user.target
