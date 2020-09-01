@@ -1,5 +1,5 @@
 """
-WSGI config for steward project.
+WSGI config for automate project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

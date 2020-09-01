@@ -1,16 +1,16 @@
 [Unit]
-Description=Steward Tool Workers
+Description=Automate Tool Workers
 Requires=postgresql.service redis.service
 After=postgresql.service redis.service
 
 [Service]
-WorkingDirectory=/var/html/steward
+WorkingDirectory=/var/html/automate
 Type=simple
 KillMode=process
 Restart=always
-ExecStart=/var/html/steward/venv/bin/python -O                  \
-          /var/html/steward/manage.py rqworker tool             \
-          --pythonpath=/var/html/steward 
+ExecStart=/var/html/automate/venv/bin/python -O                  \
+          /var/html/automate/manage.py rqworker tool             \
+          --pythonpath=/var/html/automate 
 
 [Install]
 WantedBy=multi-user.target

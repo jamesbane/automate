@@ -4,7 +4,7 @@ module.exports = {
     mode: "development",
     entry: "./src", // string | object | array
     output: {
-        path: path.resolve(__dirname, "steward/static/js"),
+        path: path.resolve(__dirname, "automate/static/js"),
         filename: "bundle.js",
     },
     resolve: {

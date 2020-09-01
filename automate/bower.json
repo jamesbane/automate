@@ -1,5 +1,5 @@
 {
-  "name": "steward",
+  "name": "automate",
   "authors": [
     "JJ Wager"
   ],
@@ -12,7 +12,7 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "steward/static/bower",
+    "automate/static/bower",
     "test",
     "tests"
   ],

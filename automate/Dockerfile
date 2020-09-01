@@ -16,4 +16,4 @@ RUN pip install -r /tmp/requirements.txt
 COPY . /src
 
 WORKDIR /src
-CMD ["/usr/local/bin/gunicorn", "--workers", "4", "--bind", "0.0.0.0:8000", "--pythonpath=/src", "steward.wsgi"]
+CMD ["/usr/local/bin/gunicorn", "--workers", "4", "--bind", "0.0.0.0:8000", "--pythonpath=/src", "automate.wsgi"]

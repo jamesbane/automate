@@ -1,5 +1,5 @@
 {
-  "name": "steward",
+  "name": "automate",
   "version": "1.0.0",
   "description": "A web application to provide automation solutions.",
   "main": "index.js",
@@ -13,8 +13,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@git.ops.cspirevoice.com:ops/steward.git"
+    "url": "git@gitlab.com:301-solutions/toolkit/automate.git"
   },
-  "author": "Morgan Humes",
+  "author": "301 Solutions",
   "license": ""
 }

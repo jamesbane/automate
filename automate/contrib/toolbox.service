@@ -1,11 +1,11 @@
 [Unit]
-Description=Steward Web Application
+Description=Automate Web Application
 Requires=nginx.service postgresql.service
 Before=nginx.service
 After=postgresql.service
 
 [Service]
-WorkingDirectory=/var/html/steward
+WorkingDirectory=/var/html/automate
 PIDFile=/run/toolbox.pid
 Type=forking
 KillMode=process
