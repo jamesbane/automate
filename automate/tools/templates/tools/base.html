@@ -14,6 +14,12 @@
               Device Specific Migration
             </a>
         {% endif %}
+        {% if perms.tools.process_device_swap_exec %}
+          {% url 'tools:device-swap-tool' as the_url %}
+            <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
+              Device Swap
+            </a>
+        {% endif %}
         {% if perms.tools.process_fraud_compliance_reset_exec %}
           {% url 'tools:fraud-compliance-reset-tool' as the_url %}
             <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">

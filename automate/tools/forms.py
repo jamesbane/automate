@@ -5,11 +5,14 @@ from django.core.validators import MinLengthValidator, RegexValidator
 # local
 from platforms.models import BroadworksPlatform
 
+from deploy.models import DeviceType
+
+from tools.jobs.device_swap_v1 import BroadWorkDeviceSwap
+
 
 class BroadworksPlatformForm(forms.Form):
     platform = forms.ModelChoiceField(label="Platform", queryset=BroadworksPlatform.objects.all())
 
-    
 
 class TypedProviderGroupForm(BroadworksPlatformForm):
     PROVIDER_TYPE_CHOICE_ENTERPRISE = 'Enterprise'
@@ -51,6 +54,7 @@ class CallParkPickupForm(TypedProviderGroupForm):
         cleaned_data['park'] = str(cleaned_data.get("park", False))
         cleaned_data['retrieve'] = str(cleaned_data.get("retrieve", False))
         return cleaned_data
+
 
 class ProviderGroupForm(BroadworksPlatformForm):
     provider_id = forms.CharField(label='Provider Id', max_length=256, required=True)
@@ -123,3 +127,19 @@ class BusyLampFieldFixupForm(ProviderGroupForm):
 
 class EmptyForm(BroadworksPlatformForm):
     pass
+
+
+class DeviceSwapFilterForm(forms.Form):
+    provider_id = forms.IntegerField(label='Provider Id', required=True, initial=1003)
+    group_id = forms.IntegerField(label='Group Id', required=True)
+    device_types = forms.ModelMultipleChoiceField(queryset=DeviceType.objects.all(), required=False)
+    department = forms.CharField(label='Department', required=False, max_length=256)
+
+    def get_result(self):
+        arbitary_result = BroadWorkDeviceSwap.get_arbitary_result(
+            group_id=self.cleaned_data['group_id'],
+            device_types=self.cleaned_data['device_types'],
+            department=self.cleaned_data['department'],
+            provider_id=self.cleaned_data['provider_id']
+        )
+        return arbitary_result

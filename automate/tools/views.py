@@ -11,8 +11,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -154,6 +155,60 @@ class DeviceSpecificMigrationToolView(PermissionRequiredMixin, LoginRequiredMixi
     def get_context_data(self, **kwargs):
         context = super(DeviceSpecificMigrationToolView, self).get_context_data(**kwargs)
         context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        return context
+
+
+class DeviceSwapToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
+    permission_required = 'tools.process_device_swap_exec'
+    permission_view = 'tools.process_device_swap_view'
+    process_name = 'Device Swap'
+    process_function = 'tools.jobs.device_swap_v1'
+    template_name = 'tools/device_swap_tool.html'
+    form_class = tools.forms.DeviceSwapFilterForm
+
+    def get(self, request, *args, **kwargs):
+        response = super(DeviceSwapToolView, self).get(request, *args, **kwargs)
+        return response
+
+    def form_valid(self, form, formset):
+        """
+        If the form is valid, redirect to the supplied URL.
+        """
+        data = form.get_result()
+        self.request.session['filter_results'] = data
+        return redirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        context = super(DeviceSwapToolView, self).get_context_data(**kwargs)
+        return context
+
+    def get_success_url(self):
+        """
+        Returns the supplied success URL.
+        """
+        if self.success_url:
+            # Forcing possible reverse_lazy evaluation
+            url = force_text(self.success_url)
+        else:
+            url = reverse('tools:device-swap-filter-result')
+        return url
+
+
+class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
+    permission_required = 'tools.process_device_swap_exec'
+    permission_view = 'tools.process_device_swap_view'
+    process_name = 'Device Swap'
+    process_function = 'tools.jobs.device_swap_v1'
+    template_name = 'tools/device_swap_filter_result.html'
+    form_class = tools.forms.DeviceSwapFilterForm
+
+    def get(self, request, *args, **kwargs):
+        response = super(DeviceSwapFilterResultView, self).get(request, *args, **kwargs)
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super(DeviceSwapFilterResultView, self).get_context_data(**kwargs)
+        context['results'] = self.request.session.get('filter_results')
         return context
 
 class FirmwareReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):

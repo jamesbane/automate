@@ -1,0 +1,31 @@
+{% extends 'tools/base.html' %}
+
+{% block tool_content %}
+  
+  <div class="card-header justify-content-between">
+    <h2>Device Swap</h2>
+  </div>
+  <div class="card-body">
+    <h2 class="text-primary"><i class="fa fa-info"></i> Documentation</h2>
+    <p>><strong>Insert documentation here!</strong><p/>
+    <h4>Summary of actions:</h4>
+    <pre>
+        Fill here
+    </pre>
+
+    <div class="well">
+      <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <p><label></label><input id="submit" type="submit" value="Filter"/></p>
+      </form>
+    </div>
+  </div>
+{% endblock tool_content %}
+
+{% block javascript %}
+  {{ block.super }}
+  {% if form.javascript %}
+    <script src="{{ form.javascript }}"></script>
+  {% endif %}
+{% endblock javascript %}

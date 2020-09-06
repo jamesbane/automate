@@ -29,6 +29,9 @@ class DeviceType(models.Model):
     class Meta:
         ordering = ('manufacturer', 'model')
 
+    def __str__(self):
+        return f'{self.manufacturer} - {self.model}'
+
 
 class Device(models.Model):
     STATE_PROVISIONED = -2

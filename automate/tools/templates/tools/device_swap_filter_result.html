@@ -1,0 +1,56 @@
+{% extends 'tools/base.html' %}
+
+{% block tool_content %}
+
+<div class="card-header justify-content-between">
+    <h2>Device Swap Filter Result</h2>
+</div>
+<div class="card-body">
+    <h4>Summary of actions:</h4>
+    <pre>
+        Choose items and press Run.
+    </pre>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Service Provider ID</th>
+            <th>Group ID</th>
+            <th>Detected Device Type</th>
+            <th>MAC Address</th>
+            <th>Department</th>
+            <th>User ID</th>
+            <th>Line/Port</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for object in results %}
+        <tr>
+            <td>{{object.provider_id}}</td>
+            <td>{{object.group_id}}</td>
+            <td>{{object.device_type}}</td>
+            <td>{{object.mac_address}}</td>
+            <td>{{object.department}}</td>
+            <td>{{object.user_id}}</td>
+            <td>{{object.line_port}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 class="text-danger"><i class="ik ik-alert-triangle"></i></h3>
+    <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
+    <div class="well">
+        <form method="POST">
+            {% csrf_token %}
+            <p><label></label><input id="submit" type="submit" value="Run"/></p>
+        </form>
+    </div>
+</div>
+{% endblock tool_content %}
+
+{% block javascript %}
+{{ block.super }}
+{% if form.javascript %}
+<script src="{{ form.javascript }}"></script>
+{% endif %}
+{% endblock javascript %}
