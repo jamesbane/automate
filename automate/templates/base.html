@@ -125,7 +125,8 @@
               <div class="nav-item has-sub {% if '/tools/' in request.get_full_path %} active open {% endif %}">
                 <a href="{% url 'tools:index' %}"><i class="ik ik-box"></i><span>Tools</span></a>
                 <div class="submenu-content">
-                  <a href="" class="menu-item">Basic</a>
+                  <a class="menu-item {% if request.get_full_path == '/tools/jobs/' %} active {% endif %}" href="{% url 'tools:process-list' %}">
+                    <i class="ik ik-check-circle"></i><span>Tool Results</span></a>
                   {% block tools_list %}{% endblock tools_list %}
                 </div>
               </div>
@@ -144,9 +145,6 @@
                   <div class="submenu-content">
                       {% block sansayvcm_items %}{% endblock sansayvcm_items %}
                   </div>
-              </div>
-              <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
-                <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
               </div>
             </nav>
           </div>

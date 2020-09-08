@@ -23,6 +23,15 @@
               {% endif %}
             </a>
         {% endif %}
+        {% if perms.tools.process_speed_dial_configurator_exec %}
+          {% url 'tools:speed-dial-configurator' as the_url %}
+            <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
+              Speed Dial 100 Configurator
+              {% if request.get_full_path == the_url %}
+                <span class="sr-only">(current)</span>
+              {% endif %}
+           </a>
+        {% endif %}
 {% endblock tools_list %}
 {% block content %}
 
