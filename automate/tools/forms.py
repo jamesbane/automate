@@ -161,9 +161,9 @@ class ReadOnlyTextField(forms.TextInput):
 class DeviceSwapSubmitResultForm(forms.Form):
     selected = forms.BooleanField(initial=False, required=False)
     provider_id = forms.IntegerField(label='Provider Id',
-                                     required=True, initial=1003,
+                                     required=False, initial=1003,
                                      widget=ReadOnlyTextField)
-    group_id = forms.IntegerField(label='Group Id', required=True,
+    group_id = forms.IntegerField(label='Group Id', required=False,
                                   widget=ReadOnlyTextField)
     device_type = forms.CharField(label='Device Type', required=True,
                                   widget=forms.TextInput(attrs={ 'required': 'true' }))
