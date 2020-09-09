@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MinLengthValidator, RegexValidator
 # local
+from django.forms import formset_factory
 from platforms.models import BroadworksPlatform
 
 from deploy.models import DeviceType
@@ -129,7 +130,7 @@ class EmptyForm(BroadworksPlatformForm):
     pass
 
 
-class DeviceSwapFilterForm(forms.Form):
+class DeviceSwapFilterForm(ProviderGroupForm):
     provider_id = forms.IntegerField(label='Provider Id', required=True, initial=1003)
     group_id = forms.IntegerField(label='Group Id', required=True)
     device_types = forms.ModelMultipleChoiceField(queryset=DeviceType.objects.all(), required=False)
@@ -143,3 +144,37 @@ class DeviceSwapFilterForm(forms.Form):
             provider_id=self.cleaned_data['provider_id']
         )
         return arbitary_result
+
+
+DeviceSwapFilterFormSet = formset_factory(DeviceSwapFilterForm)
+
+
+class ReadOnlyTextField(forms.TextInput):
+  input_type = 'text'
+
+  def render(self, name, value, attrs=None, renderer=None):
+     if value is None:
+         value = ''
+     return value
+
+
+class DeviceSwapSubmitResultForm(forms.Form):
+    selected = forms.BooleanField(initial=False, required=False)
+    provider_id = forms.IntegerField(label='Provider Id',
+                                     required=True, initial=1003,
+                                     widget=ReadOnlyTextField)
+    group_id = forms.IntegerField(label='Group Id', required=True,
+                                  widget=ReadOnlyTextField)
+    device_type = forms.CharField(label='Device Type', required=True,
+                                  widget=forms.TextInput(attrs={ 'required': 'true' }))
+    mac_address = forms.CharField(label='MAC Address', max_length=17,
+                                  widget=forms.TextInput(attrs={ 'required': 'true' }))
+    department = forms.CharField(label='Department', required=True,
+                                 max_length=256,
+                                 widget=forms.TextInput(attrs={ 'required': 'true' }))
+    user_id = forms.IntegerField(label='User ID', required=True,
+                                 widget=forms.NumberInput(attrs={ 'required': 'true' }))
+    line_port = forms.IntegerField(label='Line/Port', required=True,
+                                   widget=forms.NumberInput(attrs={ 'required': 'true' }))
+
+    javascript = static('tools/device_swap_filter_result.js')

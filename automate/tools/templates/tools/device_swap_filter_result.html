@@ -1,7 +1,8 @@
 {% extends 'tools/base.html' %}
+{% load widget_tweaks %}
+
 
 {% block tool_content %}
-
 <div class="card-header justify-content-between">
     <h2>Device Swap Filter Result</h2>
 </div>
@@ -10,47 +11,70 @@
     <pre>
         Choose items and press Run.
     </pre>
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Service Provider ID</th>
-            <th>Group ID</th>
-            <th>Detected Device Type</th>
-            <th>MAC Address</th>
-            <th>Department</th>
-            <th>User ID</th>
-            <th>Line/Port</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for object in results %}
-        <tr>
-            <td>{{object.provider_id}}</td>
-            <td>{{object.group_id}}</td>
-            <td>{{object.device_type}}</td>
-            <td>{{object.mac_address}}</td>
-            <td>{{object.department}}</td>
-            <td>{{object.user_id}}</td>
-            <td>{{object.line_port}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <form class="formset" method="POST">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table class="table" id="swap-filter-result-table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll"/></th>
+                <th>Provider ID</th>
+                <th>Group ID</th>
+                <th>Detected Device Type</th>
+                <th>MAC Address</th>
+                <th>Department</th>
+                <th>User ID</th>
+                <th>Line/Port</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--            {{ form.non_field_errors }}-->
+            <!--            {% for dict in form.errors %}-->
+            <!--            {% for error in dict.values %}-->
+            <!--            {{ error }}-->
+            <!--            {% endfor %}-->
+            <!--            {% endfor %}-->
+            <div class="formset-rows">
+                {% for form in formset %}
+                <div class="row form-row">
+                    <tr>
+                        {% for field in form %}
+                        <td>{{ field}}</td>
+                        {% endfor %}
+                        <!--                <td>{{form.selected}}</td>-->
+                        <!--                <td style="width: 100px">{{form.provider_id}}</td>-->
+                        <!--                <td>{% render_field form.group_id %}</td>-->
+                        <!--                <td>{{form.device_type}}</td>-->
+                        <!--                <td>{{form.mac_address}}</td>-->
+                        <!--                <td>{{form.department}}</td>-->
+                        <!--                <td>{{form.user_id}}</td>-->
+                        <!--                <td>{{form.line_port}}</td>-->
+                    </tr>
+                </div>
+                {% endfor %}
+            </div>
+            </tbody>
+        </table>
 
-    <h3 class="text-danger"><i class="ik ik-alert-triangle"></i></h3>
-    <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
-    <div class="well">
-        <form method="POST">
-            {% csrf_token %}
+        <h3 class="text-danger"><i class="ik ik-alert-triangle"></i></h3>
+        <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
+        <div class="well">
             <p><label></label><input id="submit" type="submit" value="Run"/></p>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
+<script>
+    $("form").each(function () {
+        $(this).find(':input').each(function (index, element) {
+            if ($(element).attr("type") == "number") {
+                $(element).css('width', '80px');
+            }
+        })
+    });
+    $(document).ready(function () {
+        $("#selectAll").click(function () {
+            $('input:checkbox').not(this).prop('checked', this.checked);
+        });
+    });
+</script>
 {% endblock tool_content %}
-
-{% block javascript %}
-{{ block.super }}
-{% if form.javascript %}
-<script src="{{ form.javascript }}"></script>
-{% endif %}
-{% endblock javascript %}

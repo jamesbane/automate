@@ -1,6 +1,4 @@
 # Python
-from collections import OrderedDict
-import csv
 import json
 import requests
 import importlib
@@ -9,6 +7,7 @@ import importlib
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.forms import formset_factory
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
@@ -24,13 +23,11 @@ from tools.models import Process
 
 # Third Party
 import django_rq
-from lib.pybw.broadworks import BroadWorks, Nil
-from lib.pypalladion.palladion import Palladion
 from lib.pyutil.django.mixins import ProcessFormMixin
 from redis import Redis
 import rq
 from platforms.models import BroadworksPlatform
-from django.contrib.auth.models import User
+
 
 class IndexView(LoginRequiredMixin, TemplateView):
     template_name = 'tools/index.html'
@@ -88,7 +85,7 @@ class ToolView(ProcessFormMixin, TemplateView):
         self.object = Process.objects.create(user=self.request.user,
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
-                                             platform_id=platform.id,
+                                             platform_id=platform,
                                              parameters=parameters,
                                              start_timestamp=timezone.now(),
                                              end_timestamp=None,
@@ -166,20 +163,23 @@ class DeviceSwapToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     template_name = 'tools/device_swap_tool.html'
     form_class = tools.forms.DeviceSwapFilterForm
 
-    def get(self, request, *args, **kwargs):
-        response = super(DeviceSwapToolView, self).get(request, *args, **kwargs)
-        return response
-
     def form_valid(self, form, formset):
         """
         If the form is valid, redirect to the supplied URL.
         """
+
+        parameters = form.cleaned_data
+        if formset:
+                # Handle all our formset
+            parameters['data'] = [f.cleaned_data for f in formset if f.cleaned_data != {}]
         data = form.get_result()
+
         self.request.session['filter_results'] = data
         return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super(DeviceSwapToolView, self).get_context_data(**kwargs)
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
         return context
 
     def get_success_url(self):
@@ -200,15 +200,32 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
     process_name = 'Device Swap'
     process_function = 'tools.jobs.device_swap_v1'
     template_name = 'tools/device_swap_filter_result.html'
-    form_class = tools.forms.DeviceSwapFilterForm
+    form_class = tools.forms.DeviceSwapSubmitResultForm
+    formset_class = tools.forms.DeviceSwapSubmitResultForm
 
-    def get(self, request, *args, **kwargs):
-        response = super(DeviceSwapFilterResultView, self).get(request, *args, **kwargs)
-        return response
+    def post(self, request, *args, **kwargs):
+        DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
+        formset = DeviceSwapFilterFormSet(request.POST)
+        if not formset.is_valid():
+            return self.form_invalid(formset, formset)
+
+        phase_two_input = self._get_phase_2_input_data(formset)
+        return HttpResponse(phase_two_input)
+
+    def _get_phase_2_input_data(self, formset):
+        data = []
+        for form in formset:
+            if form.cleaned_data['selected']:
+                data.append(form.cleaned_data)
+        return data
+
 
     def get_context_data(self, **kwargs):
         context = super(DeviceSwapFilterResultView, self).get_context_data(**kwargs)
-        context['results'] = self.request.session.get('filter_results')
+        results = self.request.session.get('filter_results')
+        DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
+        formset = DeviceSwapFilterFormSet(initial=results)
+        context['formset'] = formset
         return context
 
 class FirmwareReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):

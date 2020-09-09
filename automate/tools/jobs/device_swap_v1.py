@@ -140,14 +140,13 @@ class BroadWorkDeviceSwap:
 
     @staticmethod
     def get_arbitary_result(group_id, device_types, department=None, provider_id=1003, **kwarg):
-        # FIXME Remove this, it's a temporary method
         result = list()
 
         for _ in range(10):
             result.append({"provider_id": provider_id, "group_id": group_id,
                            "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
                            "department": 'Department A', "user_id": '1',
-                           "line_port": 100})
+                           "line_port": _})
         return result
 
 def device_swap(process_id):

@@ -28,7 +28,31 @@
     <link rel="stylesheet" href="{% static 'plugins/owl.carousel/dist/assets/owl.theme.default.min.css' %}">
     <link rel="stylesheet" href="{% static 'dist/css/theme.min.css' %}">
     <script src="src/js/vendor/modernizr-2.8.3.min.js"></script>
+     {% block javascript %}
 
+      <script src="{% static 'js/tabs.js' %}"></script>
+      <script src="{% static 'js/util.js' %}"></script>
+      <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+      <script>window.jQuery || document.write('<script src="src/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
+      <script src="{% static 'plugins/popper.js/dist/umd/popper.min.js' %} "></script>
+      <script src="{% static 'plugins/bootstrap/dist/js/bootstrap.min.js' %} "></script>
+      <script src="{% static 'plugins/perfect-scrollbar/dist/perfect-scrollbar.min.js' %} "></script>
+      <script src="{% static 'plugins/screenfull/dist/screenfull.js' %} "></script>
+      <script src="{% static 'plugins/datatables.net/js/jquery.dataTables.min.js' %} "></script>
+      <script src="{% static 'plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %} "></script>
+      <script src="{% static 'plugins/datatables.net-responsive/js/dataTables.responsive.min.js' %} "></script>
+      <script src="{% static 'plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %} "></script>
+      <script src="{% static 'plugins/jvectormap/jquery-jvectormap.min.js' %} "></script>
+
+      <script src="{% static 'plugins/moment/moment.js' %} "></script>
+      <script src="{% static 'plugins/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js' %} "></script>
+      <script src="{% static 'plugins/d3/dist/d3.min.js' %} "></script>
+      <script src="{% static 'plugins/c3/c3.min.js' %} "></script>
+      <script src="{% static 'js/tables.js' %} "></script>
+      <script src="{% static 'js/widgets.js' %} "></script>
+      <script src="{% static 'js/charts.js' %} "></script>
+      <script src="{% static 'dist/js/theme.min.js' %} "></script>
+    {% endblock javascript %}
   </head>
 
   <body>
@@ -159,30 +183,6 @@
         </div>
       </div>
     </div>
-    {% block javascript %}
-
-      <script src="{% static 'js/tabs.js' %}"></script>
-      <script src="{% static 'js/util.js' %}"></script>
-      <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-      <script>window.jQuery || document.write('<script src="src/js/vendor/jquery-3.3.1.min.js"><\/script>')</script>
-      <script src="{% static 'plugins/popper.js/dist/umd/popper.min.js' %} "></script>
-      <script src="{% static 'plugins/bootstrap/dist/js/bootstrap.min.js' %} "></script>
-      <script src="{% static 'plugins/perfect-scrollbar/dist/perfect-scrollbar.min.js' %} "></script>
-      <script src="{% static 'plugins/screenfull/dist/screenfull.js' %} "></script>
-      <script src="{% static 'plugins/datatables.net/js/jquery.dataTables.min.js' %} "></script>
-      <script src="{% static 'plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js' %} "></script>
-      <script src="{% static 'plugins/datatables.net-responsive/js/dataTables.responsive.min.js' %} "></script>
-      <script src="{% static 'plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %} "></script>
-      <script src="{% static 'plugins/jvectormap/jquery-jvectormap.min.js' %} "></script>
-
-      <script src="{% static 'plugins/moment/moment.js' %} "></script>
-      <script src="{% static 'plugins/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js' %} "></script>
-      <script src="{% static 'plugins/d3/dist/d3.min.js' %} "></script>
-      <script src="{% static 'plugins/c3/c3.min.js' %} "></script>
-      <script src="{% static 'js/tables.js' %} "></script>
-      <script src="{% static 'js/widgets.js' %} "></script>
-      <script src="{% static 'js/charts.js' %} "></script>
-      <script src="{% static 'dist/js/theme.min.js' %} "></script>
-    {% endblock javascript %}
+    </div>
   </body>
 </html>
