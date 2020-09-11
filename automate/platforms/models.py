@@ -6,6 +6,8 @@ from django.db.models.signals import post_save
 class BroadworksPlatform(models.Model):
     name = models.CharField(max_length=32, unique=True)
     uri = models.CharField(max_length=1024)
+    username = models.CharField(max_length=1024)
+    password = models.CharField(max_length=1024)
     customer = models.ForeignKey(Group,on_delete=models.CASCADE,null=True)
 
 

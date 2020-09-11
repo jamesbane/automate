@@ -22,14 +22,16 @@ class BroadWorkDeviceSwap:
     _bw = None
     _content = io.StringIO()
 
-    def __init__(self, process, username, password):
+    def __init__(self, process):
         self._process = process
 
         platform = self._process.platform_id
-        self._bw = BroadWorks(url=platform.uri,
-                              username=username,
-                              password=password)
-        self._bw.LoginRequest14sp4()
+
+        # FIXME
+        # self._bw = BroadWorks(url=platform.uri,
+        #                       username=platform.username,
+        #                       password=platform.password)
+        # self._bw.LoginRequest14sp4()
 
     def parse_response(self, response, level):
         content = io.StringIO()
@@ -80,37 +82,65 @@ class BroadWorkDeviceSwap:
                 return line_port
         return None
 
-    def device_swap(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
+    # def device_swap_filter(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
+    def device_swap_filter(self, **kwargs):
+        # FIXME
+        return self.get_arbitary_result()
+
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
-        log.write("{}Device Swap {}::{}::{}::{}\n".format('    ' * level, provider_id, group_id,
-                                                          department, device_types))
+        log.write("{}Device Swap {}::{}::{}::{}\n".format(
+            '    ' * level,
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id'],
+            self._process.parameters['department'],
+            self._process.parameters['device_types'])
+        )
 
         # get devices
         log.write('    {}Devices\n'.format('    ' * level))
-        log.write('    {}GroupAccessDeviceGetListRequest({}, {}) '.format('    ' * (level + 1), provider_id, group_id))
-        devices_response = self._bw.GroupAccessDeviceGetListRequest(provider_id, group_id)
+        log.write('    {}GroupAccessDeviceGetListRequest({}, {}) '.format(
+            '    ' * (level + 1),
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id'])
+        )
+        devices_response = self._bw.GroupAccessDeviceGetListRequest(
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id']
+        )
         log.write(self.parse_response(devices_response, level))
         devices = devices_response['data']['accessDeviceTable']
 
         matched_devices = list()
-        if not device_types:
+        if not self._process.parameters['device_types']:
             matched_devices = deepcopy(devices)
         else:
             for device in devices:
                 device_type = device['Device Type']
-                if device_type in device_types:
+                if device_type in self._process.parameters['device_types']:
                     matched_devices.append(device)
 
         devices_info = dict()
         for device in matched_devices:
             device_name = device['Device Name']
             device_type = device['Device Type']
-            log.write('    {}Device {}::{}::{})\n'.format('    ' * (level + 1), provider_id, group_id, device_name))
-            log.write('    {}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format('    ' * (level + 2), provider_id,
-                                                                                      group_id, device_name))
-            users_response = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name)
+            log.write('    {}Device {}::{}::{})\n'.format(
+                '    ' * (level + 1),
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'],
+                device_name)
+            )
+            log.write('    {}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format(
+                '    ' * (level + 2),
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'],
+                device_name)
+            )
+            users_response = self._bw.GroupAccessDeviceGetUserListRequest(
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'], device_name
+            )
             log.write(self.parse_response(users_response, level))
             users = users_response['data']['deviceUserTable']
             devices_info[device_type] = {
@@ -118,12 +148,12 @@ class BroadWorkDeviceSwap:
             }
 
         for device_type, device_info in devices_info.items():
-            if department is None:
+            if self._process.parameters['department'] is None:
                 devices_info[device_type]["matched_users"] = deepcopy(device_info["users"])
             else:
                 matched_users = list()
                 for user in device_info["users"]:
-                    if user["Department"] == department:
+                    if user["Department"] == self._process.parameters['department']:
                         matched_users.append(user)
                 devices_info[device_type]["matched_users"] = deepcopy(matched_users)
 
@@ -131,25 +161,26 @@ class BroadWorkDeviceSwap:
 
         for device_type, device_info in devices_info:
             for user in device_info["matched_users"]:
-                result.append({"provider_id": provider_id, "group_id": group_id,
+                result.append({"provider_id": self._process.parameters['provider_id'],
+                               "group_id": self._process.parameters['group_id'],
                                "device_type": device_type, "mac_address": device_info["mac_address"],
                                "department": user["Department"], "user_id": user["User Id"],
                                "line_port": user["Line/Port"]})
 
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
-    @staticmethod
-    def get_arbitary_result(group_id, device_types, department=None, provider_id=1003, **kwarg):
+    def get_arbitary_result(self):
         result = list()
 
         for _ in range(10):
-            result.append({"provider_id": provider_id, "group_id": group_id,
+            result.append({"provider_id": self._process.parameters['provider_id'] ,
+                           "group_id": self._process.parameters['group_id'] ,
                            "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
                            "department": 'Department A', "user_id": '1',
                            "line_port": _})
         return result
 
-def device_swap(process_id):
+def filter_device_swap(process_id):
     process = Process.objects.get(id=process_id)
 
     # Summary Tab
@@ -178,18 +209,15 @@ def device_swap(process_id):
     log_content.raw.name = os.path.join('process', filename_raw)
     log_content.save()
 
+    content = []
+
     try:
         print("Process {}: {} -> {}".format(process_id, process.method, process.parameters))
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
 
         ds = BroadWorkDeviceSwap(process=process)
-        content = dict()
-
-        # Retrieve Data
-        provider_type = process.parameters.get('provider_type', None)
-        provider_id = process.parameters.get('provider_id', None)
-        group_id = process.parameters.get('group_id', None)
+        content = ds.device_swap_filter()
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
@@ -209,9 +237,10 @@ def device_swap(process_id):
         summary_html.write('</tbody>\n')
         summary_html.write('</table>\n')
         # save data
-        process.status = process.STATUS_COMPLETED
-        process.end_timestamp = timezone.now()
-        process.save(update_fields=['status', 'end_timestamp'])
+        process.status = process.STATUS_RUNNING
+        # process.end_timestamp = timezone.now()
+        # process.save(update_fields=['status', 'end_timestamp'])
+        process.save(update_fields=['status'])
         ds.logout()
     except Exception:
         process.status = process.STATUS_ERROR
@@ -223,3 +252,5 @@ def device_swap(process_id):
     log_raw.close()
     summary_raw.close()
     summary_html.close()
+
+    return content

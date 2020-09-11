@@ -136,15 +136,6 @@ class DeviceSwapFilterForm(ProviderGroupForm):
     device_types = forms.ModelMultipleChoiceField(queryset=DeviceType.objects.all(), required=False)
     department = forms.CharField(label='Department', required=False, max_length=256)
 
-    def get_result(self):
-        arbitary_result = BroadWorkDeviceSwap.get_arbitary_result(
-            group_id=self.cleaned_data['group_id'],
-            device_types=self.cleaned_data['device_types'],
-            department=self.cleaned_data['department'],
-            provider_id=self.cleaned_data['provider_id']
-        )
-        return arbitary_result
-
 
 DeviceSwapFilterFormSet = formset_factory(DeviceSwapFilterForm)
 

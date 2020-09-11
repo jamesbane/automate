@@ -1,6 +1,5 @@
 # Python
 import json
-import requests
 import importlib
 
 # Django
@@ -10,7 +9,6 @@ from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.views.generic import TemplateView
@@ -22,7 +20,6 @@ import tools.forms
 from tools.models import Process
 
 # Third Party
-import django_rq
 from lib.pyutil.django.mixins import ProcessFormMixin
 from redis import Redis
 import rq
@@ -155,32 +152,45 @@ class DeviceSpecificMigrationToolView(PermissionRequiredMixin, LoginRequiredMixi
         return context
 
 
-class DeviceSwapToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
+class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_device_swap_exec'
     permission_view = 'tools.process_device_swap_view'
     process_name = 'Device Swap'
-    process_function = 'tools.jobs.device_swap_v1'
+    process_function = 'tools.jobs.device_swap_v1.filter_device_swap'
     template_name = 'tools/device_swap_tool.html'
     form_class = tools.forms.DeviceSwapFilterForm
+
+    # def form_valid(self, form, formset):
 
     def form_valid(self, form, formset):
         """
         If the form is valid, redirect to the supplied URL.
         """
-
         parameters = form.cleaned_data
+        platform = parameters.pop('platform')
+        parameters.pop('device_types')
+
         if formset:
-                # Handle all our formset
-            parameters['data'] = [f.cleaned_data for f in formset if f.cleaned_data != {}]
-        data = form.get_result()
+            # Handle all our formset
+            parameters['data'] = [ f.cleaned_data for f in formset if f.cleaned_data != {}]
+        self.object = Process.objects.create(user=self.request.user,
+                                             method=self.process_name,
+                                             platform_type=Process.PLATFORM_BROADWORKS,
+                                             platform_id=platform,
+                                             parameters=parameters)
+        module = '.'.join(self.process_function.split('.')[:-1])
+        method = self.process_function.split('.')[-1]
+        importlib.import_module(module)
+        process_function = eval(self.process_function)
+        filter_results = process_function(self.object.pk)
+        self.request.session['filter_results'] = filter_results
 
-        self.request.session['filter_results'] = data
-        return redirect(self.get_success_url())
+        # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
+        #                                       port=settings.RQ_QUEUES['tool']['PORT'],
+        #                                       db=settings.RQ_QUEUES['tool']['DB']), default_timeout=10800)
+        # q.enqueue_call(process_function, args=(self.object.pk,))
 
-    def get_context_data(self, **kwargs):
-        context = super(DeviceSwapToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
-        return context
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         """
