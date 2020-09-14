@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
     'widget_tweaks',
+    'django_extensions'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
