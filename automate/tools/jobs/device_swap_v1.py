@@ -26,10 +26,10 @@ class BroadWorkDeviceSwap:
         self._process = process
 
         platform = self._process.platform_id
-        # self._bw = BroadWorks(url=platform.uri,
-        #                       username=platform.username,
-        #                       password=platform.password)
-        # self._bw.LoginRequest14sp4()
+        self._bw = BroadWorks(url=platform.uri,
+                              username=platform.username,
+                              password=platform.password)
+        self._bw.LoginRequest14sp4()
 
     def parse_response(self, response, level):
         content = io.StringIO()
