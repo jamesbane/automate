@@ -26,8 +26,6 @@ class BroadWorkDeviceSwap:
         self._process = process
 
         platform = self._process.platform_id
-
-        # FIXME
         # self._bw = BroadWorks(url=platform.uri,
         #                       username=platform.username,
         #                       password=platform.password)
@@ -84,18 +82,16 @@ class BroadWorkDeviceSwap:
 
     # def device_swap_filter(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
     def device_swap_filter(self, **kwargs):
-        # FIXME
-        return self.get_arbitary_result()
-
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
+        device_types = self._process.parameters.get("device_types", [])
         log.write("{}Device Swap {}::{}::{}::{}\n".format(
             '    ' * level,
             self._process.parameters['provider_id'],
             self._process.parameters['group_id'],
             self._process.parameters['department'],
-            self._process.parameters['device_types'])
+            device_types)
         )
 
         # get devices
@@ -109,16 +105,47 @@ class BroadWorkDeviceSwap:
             self._process.parameters['provider_id'],
             self._process.parameters['group_id']
         )
-        log.write(self.parse_response(devices_response, level))
+        # devices_response = {"data": {"accessDeviceTable": [
+        #     {"Device Name": "001565B61FC0", "Device Type": "Yealink-T42G", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "001565B61FC0", "Status": "Online", "Version": "Linksys/SPA2102-5.2.10",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "001565C92CCA", "Device Type": "Yealink-T46G", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "001565C92CCA", "Status": "Online", "Version": "eyeBeam release 3010n stamp 19039",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991463", "Device Type": "Polycom_VVX150", "Available Ports": 2, "Net Address": None,
+        #      "MAC Address": "", "Status": "Online", "Version": "", "Access Device External Id": ""},
+        #     {"Device Name": "6014991464", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_400-UA/5.9.5.0614_0004f28e5a79",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991464_dt", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "", "Access Device External Id": ""},
+        #     {"Device Name": "6014991465", "Device Type": "Polycom_VVX500", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_500-UA/5.9.3.2857",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991466", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "Z 3.9.32144 r32121",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991467", "Device Type": "Polycom_VVX300", "Available Ports": 6, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "",
+        #      "Access Device External Id": "PolycomVVX-VVX_311-UA/5.9.3.2857"},
+        #     {"Device Name": "6014991468", "Device Type": "Polycom_VVX500", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "Z 3.9.32144 r32121",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "Polycom VVX150", "Device Type": "Polycom_VVX150", "Available Ports": 2, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_150-UA/6.2.0.3937_64167f39299c",
+        #      "Access Device External Id": ""},
+        # ]}}
+
+        # log.write(self.parse_response(devices_response, level))
         devices = devices_response['data']['accessDeviceTable']
 
         matched_devices = list()
-        if not self._process.parameters['device_types']:
+        if not device_types:
             matched_devices = deepcopy(devices)
         else:
             for device in devices:
                 device_type = device['Device Type']
-                if device_type in self._process.parameters['device_types']:
+                if device_type in device_types:
                     matched_devices.append(device)
 
         devices_info = dict()
@@ -137,6 +164,13 @@ class BroadWorkDeviceSwap:
                 self._process.parameters['group_id'],
                 device_name)
             )
+            # users_response = {"data": {"deviceUserTable": [
+            #     {"Line/Port": "ipvevvx400@telapexinc.com", "Last Name": "vvx",
+            #      "First Name": "test", "Phone Number": "", "User Id": "ipvevvx400@telapexinc.com",
+            #      "User Type": "Normal", "Endpoint Type": "Primary", "Order": 1,
+            #      "Primary Line/Port": True, "Extension": 2589, "Department": "d1",
+            #      "Email Address": "", "Private Identity": "", "Hotline Contact": ""}
+            # ]}}
             users_response = self._bw.GroupAccessDeviceGetUserListRequest(
                 self._process.parameters['provider_id'],
                 self._process.parameters['group_id'], device_name
@@ -146,7 +180,6 @@ class BroadWorkDeviceSwap:
             devices_info[device_type] = {
                 "device_name": device_name, "mac_address": device["MAC Address"], "users": users
             }
-
         for device_type, device_info in devices_info.items():
             if self._process.parameters['department'] is None:
                 devices_info[device_type]["matched_users"] = deepcopy(device_info["users"])
@@ -156,29 +189,28 @@ class BroadWorkDeviceSwap:
                     if user["Department"] == self._process.parameters['department']:
                         matched_users.append(user)
                 devices_info[device_type]["matched_users"] = deepcopy(matched_users)
-
         result = list()
 
-        for device_type, device_info in devices_info:
+        for device_type, device_info in devices_info.items():
             for user in device_info["matched_users"]:
                 result.append({"provider_id": self._process.parameters['provider_id'],
                                "group_id": self._process.parameters['group_id'],
                                "device_type": device_type, "mac_address": device_info["mac_address"],
                                "department": user["Department"], "user_id": user["User Id"],
                                "line_port": user["Line/Port"]})
-
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
     def get_arbitary_result(self):
         result = list()
 
         for _ in range(10):
-            result.append({"provider_id": self._process.parameters['provider_id'] ,
-                           "group_id": self._process.parameters['group_id'] ,
+            result.append({"provider_id": self._process.parameters['provider_id'],
+                           "group_id": self._process.parameters['group_id'],
                            "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
                            "department": 'Department A', "user_id": '1',
                            "line_port": _})
         return result
+
 
 def filter_device_swap(process_id):
     process = Process.objects.get(id=process_id)
@@ -217,7 +249,7 @@ def filter_device_swap(process_id):
         process.save(update_fields=['status'])
 
         ds = BroadWorkDeviceSwap(process=process)
-        content = ds.device_swap_filter()
+        content = ds.device_swap_filter()["result"]
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
@@ -241,7 +273,7 @@ def filter_device_swap(process_id):
         # process.end_timestamp = timezone.now()
         # process.save(update_fields=['status', 'end_timestamp'])
         process.save(update_fields=['status'])
-        ds.logout()
+        # ds.logout()
     except Exception:
         process.status = process.STATUS_ERROR
         process.end_timestamp = timezone.now()

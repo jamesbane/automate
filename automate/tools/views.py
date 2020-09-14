@@ -1,5 +1,8 @@
 # Python
+from collections import OrderedDict
+import csv
 import json
+import requests
 import importlib
 
 # Django
@@ -9,6 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.views.generic import TemplateView
@@ -20,10 +24,16 @@ import tools.forms
 from tools.models import Process
 
 # Third Party
+import django_rq
+from lib.pybw.broadworks import BroadWorks, Nil
+from lib.pypalladion.palladion import Palladion
 from lib.pyutil.django.mixins import ProcessFormMixin
 from redis import Redis
 import rq
 from platforms.models import BroadworksPlatform
+from django.contrib.auth.models import User
+
+from tools.forms import DeviceSwapSubmitResultForm, DeviceSwapFilterFormSet
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -37,10 +47,11 @@ class ProcessListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(ProcessListView, self).get_context_data(**kwargs)
-        platform = BroadworksPlatform.objects.filter(customer__in=self.request.user.groups.all()).values_list('id', flat=True)
+        platform = BroadworksPlatform.objects.filter(customer__in=self.request.user.groups.all()).values_list('id',
+                                                                                                              flat=True)
         print(platform)
         plat = [i for i in platform]
-        data =  self.model.objects.filter(platform_type__in=plat,user=self.request.user)
+        data = self.model.objects.filter(platform_type__in=plat, user=self.request.user)
         context['object_list'] = data
         return context
 
@@ -48,7 +59,7 @@ class ProcessListView(LoginRequiredMixin, ListView):
         queryset = super(ProcessListView, self).get_queryset()
         # filter based upon permissions
         permissions = []
-        for permission in ['tools.{}'.format(x) for x,y in Process._meta.permissions]:
+        for permission in ['tools.{}'.format(x) for x, y in Process._meta.permissions]:
             if self.request.user.has_perm(permission):
                 permissions.append(permission)
         queryset = queryset.filter(view_permission__in=permissions)
@@ -76,25 +87,25 @@ class ToolView(ProcessFormMixin, TemplateView):
         """
         parameters = form.cleaned_data
         platform = parameters.pop('platform')
+
         if formset:
             # Handle all our formset
-            parameters['data'] = [ f.cleaned_data for f in formset if f.cleaned_data != {}]
+            parameters['data'] = [f.cleaned_data for f in formset if f.cleaned_data != {}]
         self.object = Process.objects.create(user=self.request.user,
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
                                              platform_id=platform,
-                                             parameters=parameters,
-                                             start_timestamp=timezone.now(),
-                                             end_timestamp=None,
-                                             view_permission=self.permission_view)
+                                             parameters=parameters)
         module = '.'.join(self.process_function.split('.')[:-1])
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)
-        q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
-                                              port=settings.RQ_QUEUES['tool']['PORT'],
-                                              db=settings.RQ_QUEUES['tool']['DB']), default_timeout=10800)
-        q.enqueue_call(process_function, args=(self.object.pk,))
+        process_function(self.object.pk)
+        # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
+        #                                       port=settings.RQ_QUEUES['tool']['PORT'],
+        #                                       db=settings.RQ_QUEUES['tool']['DB']), default_timeout=10800)
+        # q.enqueue_call(process_function, args=(self.object.pk,))
+
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -119,9 +130,11 @@ class CallParkPickupConfiguratorToolView(PermissionRequiredMixin, LoginRequiredM
 
     def get_context_data(self, **kwargs):
         context = super(CallParkPickupConfiguratorToolView, self).get_context_data(**kwargs)
-        
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class DectConfiguratorToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_dect_configurator_exec'
@@ -135,8 +148,10 @@ class DectConfiguratorToolView(PermissionRequiredMixin, LoginRequiredMixin, Tool
 
     def get_context_data(self, **kwargs):
         context = super(DectConfiguratorToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class DeviceSpecificMigrationToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_device_specific_migration_exec'
@@ -148,7 +163,7 @@ class DeviceSpecificMigrationToolView(PermissionRequiredMixin, LoginRequiredMixi
 
     def get_context_data(self, **kwargs):
         context = super(DeviceSpecificMigrationToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        # context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -168,11 +183,12 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         """
         parameters = form.cleaned_data
         platform = parameters.pop('platform')
-        parameters.pop('device_types')
+        device_types = [device_type.model for device_type in parameters.get("device_types", [])]
+        parameters["device_types"] = device_types
 
         if formset:
             # Handle all our formset
-            parameters['data'] = [ f.cleaned_data for f in formset if f.cleaned_data != {}]
+            parameters['data'] = [f.cleaned_data for f in formset if f.cleaned_data != {}]
         self.object = Process.objects.create(user=self.request.user,
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
@@ -213,6 +229,14 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
     form_class = tools.forms.DeviceSwapSubmitResultForm
     formset_class = tools.forms.DeviceSwapSubmitResultForm
 
+    def form_valid(self, form, formset):
+        """
+        If the form is valid, redirect to the supplied URL.
+        """
+        super(DeviceSwapFilterResultView, self).form_valid(form, formset)
+        self.request.session['filter_process_id'] = self.object.pk
+        return redirect(self.get_success_url())
+
     def post(self, request, *args, **kwargs):
         DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
         formset = DeviceSwapFilterFormSet(request.POST)
@@ -229,14 +253,15 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
                 data.append(form.cleaned_data)
         return data
 
-
     def get_context_data(self, **kwargs):
         context = super(DeviceSwapFilterResultView, self).get_context_data(**kwargs)
         results = self.request.session.get('filter_results')
         DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
         formset = DeviceSwapFilterFormSet(initial=results)
         context['formset'] = formset
+
         return context
+
 
 class FirmwareReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_firmware_report_exec'
@@ -248,7 +273,8 @@ class FirmwareReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
 
     def get_context_data(self, **kwargs):
         context = super(FirmwareReportView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -262,7 +288,8 @@ class FraudComplianceResetToolView(PermissionRequiredMixin, LoginRequiredMixin, 
 
     def get_context_data(self, **kwargs):
         context = super(FraudComplianceResetToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -273,10 +300,11 @@ class LabResetToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     process_function = 'tools.jobs.lab_rebuild.lab_rebuild'
     template_name = 'tools/lab_rebuild.html'
     form_class = tools.forms.EmptyForm
-    
+
     def get_context_data(self, **kwargs):
         context = super(LabResetToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -290,8 +318,10 @@ class PushToTalkConfiguratorToolView(PermissionRequiredMixin, LoginRequiredMixin
 
     def get_context_data(self, **kwargs):
         context = super(PushToTalkConfiguratorToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class RegistrationByTypeReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_registration_by_type_exec'
@@ -303,8 +333,10 @@ class RegistrationByTypeReportView(PermissionRequiredMixin, LoginRequiredMixin, 
 
     def get_context_data(self, **kwargs):
         context = super(RegistrationByTypeReportView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class RegistrationReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_registration_report_exec'
@@ -316,8 +348,10 @@ class RegistrationReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolVi
 
     def get_context_data(self, **kwargs):
         context = super(RegistrationReportView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class SpeedDialConfiguratorToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_speed_dial_configurator_exec'
@@ -331,7 +365,8 @@ class SpeedDialConfiguratorToolView(PermissionRequiredMixin, LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(SpeedDialConfiguratorToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -345,8 +380,10 @@ class TagReportView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
 
     def get_context_data(self, **kwargs):
         context = super(TagReportView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class TagRemovalToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_tag_removal_exec'
@@ -358,8 +395,10 @@ class TagRemovalToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
 
     def get_context_data(self, **kwargs):
         context = super(TagRemovalToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
+
 
 class TrunkAuditToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
     permission_required = 'tools.process_trunk_user_audit_exec'
@@ -371,7 +410,8 @@ class TrunkAuditToolView(PermissionRequiredMixin, LoginRequiredMixin, ToolView):
 
     def get_context_data(self, **kwargs):
         context = super(TrunkAuditToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
 
 
@@ -385,5 +425,6 @@ class BusyLampFieldFixupToolView(PermissionRequiredMixin, LoginRequiredMixin, To
 
     def get_context_data(self, **kwargs):
         context = super(BusyLampFieldFixupToolView, self).get_context_data(**kwargs)
-        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(customer__in = [i.id for i in self.request.user.groups.all()])
+        context['form'].fields['platform'].queryset = BroadworksPlatform.objects.filter(
+            customer__in=[i.id for i in self.request.user.groups.all()])
         return context
