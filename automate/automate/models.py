@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    timezone = models.CharField(max_length=256, default='America/Chicago',
+    timezone = models.CharField(max_length=256, default='America/New_York',
                                 choices=((x,x) for x in pytz.country_timezones['US']))
 
 
