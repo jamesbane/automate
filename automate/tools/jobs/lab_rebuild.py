@@ -60,13 +60,13 @@ class BroadWorksLab:
         content.write('\n')
 
         content.write("Retrieve Defaults\n")
-        content.write("{}ServiceProviderServiceGetAuthorizationListRequest('LokiHelper') ".format('    '*level)),
-        resp = self._bw.ServiceProviderServiceGetAuthorizationListRequest('LokiHelper')
+        content.write("{}ServiceProviderServiceGetAuthorizationListRequest('00001') ".format('    '*level)),
+        resp = self._bw.ServiceProviderServiceGetAuthorizationListRequest('00001')
         content.write(self.parse_response(resp, level))
-        loki_service_authorization_list = resp['data']
-        content.write("{}GroupServiceGetAuthorizationListRequest('LokiHelper', 'IP Voice Phone System') ".format('    '*level)),
-        resp = self._bw.GroupServiceGetAuthorizationListRequest('LokiHelper', 'IP Voice Phone System')
-        loki_group_service_auth = resp['data']
+        Lab_service_authorization_list = resp['data']
+        content.write("{}GroupServiceGetAuthorizationListRequest('00001', 'IP Voice Phone System') ".format('    '*level)),
+        resp = self._bw.GroupServiceGetAuthorizationListRequest('00001', 'IP Voice Phone System')
+        Lab_group_service_auth = resp['data']
         content.write(self.parse_response(resp, level))
         content.write('\n')
 
@@ -91,7 +91,7 @@ class BroadWorksLab:
         content.write(self.parse_response(resp, level))
         # authorized services
         authorization_list = {'groupServiceAuthorization': list(), 'userServiceAuthorization': list()}
-        for d in loki_service_authorization_list['groupServicesAuthorizationTable']:
+        for d in Lab_service_authorization_list['groupServicesAuthorizationTable']:
             if d['Authorized'] != 'true':
                 continue
             data = OrderedDict()
@@ -101,7 +101,7 @@ class BroadWorksLab:
             else:
                 data['authorizedQuantity'] = {'quantity': d['Quantity']}
             authorization_list['groupServiceAuthorization'].append(data)
-        for d in loki_service_authorization_list['userServicesAuthorizationTable']:
+        for d in Lab_service_authorization_list['userServicesAuthorizationTable']:
             if d['Authorized'] != 'true':
                 continue
             data = OrderedDict()
@@ -116,13 +116,13 @@ class BroadWorksLab:
         content.write(self.parse_response(resp, level))
 
         # service packs
-        content.write("{}ServiceProviderServicePackGetListRequest('LokiHelper') ".format('    '*level)),
-        resp = self._bw.ServiceProviderServicePackGetListRequest('LokiHelper')
+        content.write("{}ServiceProviderServicePackGetListRequest('00001') ".format('    '*level)),
+        resp = self._bw.ServiceProviderServicePackGetListRequest('00001')
         content.write(self.parse_response(resp, level))
-        loki_service_pack_list = resp['data']['servicePackName']
-        for service_pack_name in loki_service_pack_list:
-            content.write("{}ServiceProviderServicePackGetDetailListRequest('LokiHelper', {}) ".format('    '*level, service_pack_name)),
-            resp = self._bw.ServiceProviderServicePackGetDetailListRequest('LokiHelper', service_pack_name)
+        Lab_service_pack_list = resp['data']['servicePackName']
+        for service_pack_name in Lab_service_pack_list:
+            content.write("{}ServiceProviderServicePackGetDetailListRequest('00001', {}) ".format('    '*level, service_pack_name)),
+            resp = self._bw.ServiceProviderServicePackGetDetailListRequest('00001', service_pack_name)
             content.write(self.parse_response(resp, level))
             service_pack_detail = resp['data']
 
@@ -152,7 +152,7 @@ class BroadWorksLab:
             resp = self._bw.GroupModifyRequest(provider['id'], group['id'], callingLineIdPhoneNumber=group['number'])
             content.write(self.parse_response(resp, level))
             service_auth = {'servicePackAuthorization': list(), 'groupServiceAuthorization': list(), 'userServiceAuthorization': list()}
-            for d in loki_group_service_auth['servicePacksAuthorizationTable']:
+            for d in Lab_group_service_auth['servicePacksAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -162,7 +162,7 @@ class BroadWorksLab:
                 else:
                     data['authorizedQuantity'] = {'quantity': d['Quantity']}
                 service_auth['servicePackAuthorization'].append(data)
-            for d in loki_group_service_auth['groupServicesAuthorizationTable']:
+            for d in Lab_group_service_auth['groupServicesAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -172,7 +172,7 @@ class BroadWorksLab:
                 else:
                     data['authorizedQuantity'] = {'quantity': d['Quantity']}
                 service_auth['groupServiceAuthorization'].append(data)
-            for d in loki_group_service_auth['userServicesAuthorizationTable']:
+            for d in Lab_group_service_auth['userServicesAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -314,12 +314,6 @@ class BroadWorksLab:
 #        'seedGrp': 'Fuse Onboard Group',
 #    }
 #}
-parameter = {
-        'provider_id': '0301_LAB',
-        'group_id': ''
-    }
-
-
 
 provider = {
     'id': '0301_Lab',
