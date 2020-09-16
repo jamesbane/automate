@@ -36,7 +36,7 @@ class Process(models.Model):
     @property
     def platform(self):
         if self.platform_type == Process.PLATFORM_BROADWORKS:
-            return BroadworksPlatform.objects.get(pk=self.platform_id)
+            return BroadworksPlatform.objects.get(pk=self.platform_id.id)
         return None
 
     def get_platform_type_display(self):

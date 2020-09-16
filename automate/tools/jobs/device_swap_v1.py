@@ -200,16 +200,16 @@ class BroadWorkDeviceSwap:
                                "line_port": user["Line/Port"]})
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
-    def get_arbitary_result(self):
-        result = list()
-
-        for _ in range(10):
-            result.append({"provider_id": self._process.parameters['provider_id'],
-                           "group_id": self._process.parameters['group_id'],
-                           "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
-                           "department": 'Department A', "user_id": '1',
-                           "line_port": _})
-        return result
+    # def get_arbitary_result(self):
+    #     result = list()
+    #
+    #     for _ in range(10):
+    #         result.append({"provider_id": self._process.parameters['provider_id'],
+    #                        "group_id": self._process.parameters['group_id'],
+    #                        "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
+    #                        "department": 'Department A', "user_id": '1',
+    #                        "line_port": _})
+    #     return result
 
 
 def filter_device_swap(process_id):

@@ -95,7 +95,10 @@ class ToolView(ProcessFormMixin, TemplateView):
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
                                              platform_id=platform,
-                                             parameters=parameters)
+                                             parameters=parameters,
+                                             start_timestamp=timezone.now(),
+                                             end_timestamp=None,
+                                             view_permission=self.permission_view)
         module = '.'.join(self.process_function.split('.')[:-1])
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
@@ -175,8 +178,6 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
     template_name = 'tools/device_swap_tool.html'
     form_class = tools.forms.DeviceSwapFilterForm
 
-    # def form_valid(self, form, formset):
-
     def form_valid(self, form, formset):
         """
         If the form is valid, redirect to the supplied URL.
@@ -186,6 +187,7 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         device_types = [device_type.model for device_type in parameters.get("device_types", [])]
         parameters["device_types"] = device_types
 
+        # FIXME duplicate code with parent
         if formset:
             # Handle all our formset
             parameters['data'] = [f.cleaned_data for f in formset if f.cleaned_data != {}]
@@ -193,12 +195,16 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
                                              platform_id=platform,
-                                             parameters=parameters)
+                                             parameters=parameters,
+                                             start_timestamp=timezone.now(),
+                                             end_timestamp=None,
+                                             view_permission=self.permission_view)
         module = '.'.join(self.process_function.split('.')[:-1])
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)
         filter_results = process_function(self.object.pk)
+
         self.request.session['filter_results'] = filter_results
 
         # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
