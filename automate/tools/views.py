@@ -33,7 +33,7 @@ import rq
 from platforms.models import BroadworksPlatform
 from django.contrib.auth.models import User
 
-from tools.forms import DeviceSwapSubmitResultForm, DeviceSwapFilterFormSet
+from tools.forms import DeviceSwapSubmitResultForm, DeviceSwapFilterFormSet, DeviceSwapDeviceTypeSelectForm
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -246,10 +246,15 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
     def post(self, request, *args, **kwargs):
         DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
         formset = DeviceSwapFilterFormSet(request.POST)
-        if not formset.is_valid():
+        device_type_form = DeviceSwapDeviceTypeSelectForm(request.POST)
+        if not formset.is_valid() or not device_type_form.is_valid():
             return self.form_invalid(formset, formset)
-
         phase_two_input = self._get_phase_2_input_data(formset)
+        phase_two_input.append(
+            {'new_device_type': str(
+                device_type_form.cleaned_data['new_device_type']
+            )}
+        )
         return HttpResponse(phase_two_input)
 
     def _get_phase_2_input_data(self, formset):
@@ -265,6 +270,8 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
         DeviceSwapFilterFormSet = formset_factory(tools.forms.DeviceSwapSubmitResultForm, extra=0)
         formset = DeviceSwapFilterFormSet(initial=results)
         context['formset'] = formset
+
+        context['device_type_form'] = DeviceSwapDeviceTypeSelectForm()
 
         return context
 

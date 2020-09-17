@@ -157,15 +157,19 @@ class DeviceSwapSubmitResultForm(forms.Form):
     group_id = forms.IntegerField(label='Group Id', required=False,
                                   widget=ReadOnlyTextField)
     device_type = forms.CharField(label='Device Type', required=True,
-                                  widget=forms.TextInput(attrs={ 'required': 'true' }))
+                                  widget=forms.TextInput(attrs={'required': 'true'}))
     mac_address = forms.CharField(label='MAC Address', max_length=17,
-                                  widget=forms.TextInput(attrs={ 'required': 'true' }))
+                                  widget=forms.TextInput(attrs={'required': 'true'}))
     department = forms.CharField(label='Department', required=True,
                                  max_length=256,
-                                 widget=forms.TextInput(attrs={ 'required': 'true' }))
+                                 widget=forms.TextInput(attrs={'required': 'true'}))
     user_id = forms.IntegerField(label='User ID', required=True,
-                                 widget=forms.NumberInput(attrs={ 'required': 'true' }))
+                                 widget=forms.NumberInput(attrs={'required': 'true'}))
     line_port = forms.IntegerField(label='Line/Port', required=True,
-                                   widget=forms.NumberInput(attrs={ 'required': 'true' }))
+                                   widget=forms.NumberInput(attrs={'required': 'true'}))
 
     javascript = static('tools/device_swap_filter_result.js')
+
+
+class DeviceSwapDeviceTypeSelectForm(forms.Form):
+    new_device_type = forms.ModelChoiceField(queryset=DeviceType.objects.all(), label='New Device Type')
