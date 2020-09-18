@@ -2,6 +2,7 @@
 import base64
 import io
 import os
+import re
 import traceback
 import csv
 from collections import OrderedDict
@@ -139,13 +140,18 @@ class BroadWorkDeviceSwap:
         # log.write(self.parse_response(devices_response, level))
         devices = devices_response['data']['accessDeviceTable']
 
+        for device in devices:
+            parsed_version = self.parse_version(device['Version'])
+            device['Device Type'] = parsed_version['device_type']
+            device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
+
         matched_devices = list()
         if not device_types:
             matched_devices = deepcopy(devices)
         else:
             for device in devices:
                 device_type = device['Device Type']
-                if device_type in device_types:
+                if device_type == '' or device_type in device_types:
                     matched_devices.append(device)
 
         devices_info = dict()
@@ -199,6 +205,27 @@ class BroadWorkDeviceSwap:
                                "department": user["Department"], "user_id": user["User Id"],
                                "line_port": user["Line/Port"]})
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
+
+    def parse_version(self, version):
+        """
+        # currently supports Polycom devices only
+
+        example version 'PolycomVVX-VVX_400-UA/5.9.5.0614_0004f28e5a79'
+        """
+
+        device_type, mac_address = ('',) * 2
+        if not version.lower().startswith('polycom'):
+            return locals()
+
+        try:
+            left, right = version.split('/')
+            device_type = re.findall(r'^(?i)Polycom.*', left)[0]
+            if device_type.endswith('-UA'):
+                device_type = device_type.replace('-UA', '')
+            mac_address = re.findall(r'[0-9a-fA-F]{12}', right)[0]
+        except (IndexError, ValueError):
+            pass
+        return locals()
 
     # def get_arbitary_result(self):
     #     result = list()
