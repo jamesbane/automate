@@ -131,8 +131,8 @@ class EmptyForm(BroadworksPlatformForm):
 
 
 class DeviceSwapFilterForm(ProviderGroupForm):
-    provider_id = forms.IntegerField(label='Provider Id', required=True, initial=1003)
-    group_id = forms.IntegerField(label='Group Id', required=True)
+    provider_id = forms.CharField(label='Provider Id', required=True)
+    group_id = forms.CharField(label='Group Id', required=True)
     device_types = forms.ModelMultipleChoiceField(queryset=DeviceType.objects.all(), required=False)
     department = forms.CharField(label='Department', required=False, max_length=256)
 

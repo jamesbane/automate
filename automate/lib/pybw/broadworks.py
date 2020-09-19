@@ -79,9 +79,9 @@ class BroadWorks:
 
         self._sessionId = uuid.uuid1()
         self._conn = Client(self._url, faults=True)
-        #logging.basicConfig(level=logging.INFO)
-        #logging.getLogger('suds.client').setLevel(logging.DEBUG)
-        #print(self._conn)
+        logging.basicConfig(level=logging.INFO)
+        logging.getLogger('suds.client').setLevel(logging.DEBUG)
+        print(self._conn)
 
     def _decodeResponseObject(self, obj):
         try:

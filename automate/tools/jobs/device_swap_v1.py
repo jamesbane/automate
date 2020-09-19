@@ -16,7 +16,7 @@ from django.utils import timezone
 from tools.models import (Process, ProcessContent)
 
 # Third Party
-from lib.pybw.broadworks import (BroadWorks, Nil)
+from lib.bw.broadworks import (BroadWorks, Nil)
 
 
 class BroadWorkDeviceSwap:
@@ -29,7 +29,8 @@ class BroadWorkDeviceSwap:
         platform = self._process.platform_id
         self._bw = BroadWorks(url=platform.uri,
                               username=platform.username,
-                              password=platform.password)
+                              password=platform.password,
+                              location=self._process.platform.uri)
         self._bw.LoginRequest14sp4()
 
     def parse_response(self, response, level):
@@ -137,7 +138,7 @@ class BroadWorkDeviceSwap:
         #      "Access Device External Id": ""},
         # ]}}
 
-        # log.write(self.parse_response(devices_response, level))
+        log.write(self.parse_response(devices_response, level))
         devices = devices_response['data']['accessDeviceTable']
 
         for device in devices:

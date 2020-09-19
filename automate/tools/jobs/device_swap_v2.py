@@ -1,74 +1,62 @@
 # Python
+import base64
 import io
 import os
-import csv
-import sys
-import time
-import base64
-import datetime
 import traceback
+import csv
 from collections import OrderedDict
+from copy import deepcopy
 
 # Django
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
 
 # Application
-from tools.models import Process, ProcessContent
+from tools.models import (Process, ProcessContent)
 
 # Third Party
-from lib.pyutil.util import Util
-from lib.bw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import (BroadWorks, Nil)
 
 
-class BroadWorksDeviceMigration:
+class BroadWorkDeviceSwapPh2:
     _bw = None
     _content = io.StringIO()
 
     def __init__(self, process):
         self._process = process
-        self._bw = BroadWorks(url=self._process.platform.uri,
-                              username=self._process.platform.username,
-                              password=self._process.platform.password)
+
+        platform = self._process.platform_id
+        self._bw = BroadWorks(url=platform.uri,
+                              username=platform.username,
+                              password=platform.password)
         self._bw.LoginRequest14sp4()
-
-    @staticmethod
-    def has_primary_line_port(device_user_table):
-        for line_port in device_user_table:
-            if line_port['Primary Line/Port'] == 'true':
-                return True
-        return False
-
-    @staticmethod
-    def get_first_primary_line_port(line_ports):
-        for line_port in line_ports:
-            if line_port['Endpoint Type'] == 'Primary':
-                return line_port
-        return None
-
-    def logout(self):
-        self._bw.LogoutRequest()
 
     def parse_response(self, response, level):
         content = io.StringIO()
         content.write('{}\n'.format(response['type']))
         if response['type'] == 'c:ErrorResponse':
             if 'summaryEnglish' in response['data'] and 'errorCode' in response['data']:
-                content.write('        {}[{}] {}\n'.format('    '*level, response['data']['errorCode'], response['data']['summaryEnglish']))
+                content.write('{}[{}] {}\n'.format('    ' * (level + 1), response['data']['errorCode'],
+                                                   response['data']['summaryEnglish']))
             elif 'summaryEnglish' in response['data']:
-                content.write('        {}{}\n'.format('    '*level, response['data']['summaryEnglish']))
+                content.write('{}{}\n'.format('    ' * level, response['data']['summaryEnglish']))
             elif 'summary' in response['data'] and 'errorCode' in response['data']:
-                content.write('        {}[{}] {}\n'.format('    '*level, response['data']['errorCode'], response['data']['summary']))
+                content.write('{}[{}] {}\n'.format('    ' * (level + 1), response['data']['errorCode'],
+                                                   response['data']['summary']))
             elif 'summary' in response['data']:
-                content.write('        {}{}\n'.format('    '*level, response['data']['summary']))
+                content.write('{}{}\n'.format('    ' * (level + 1), response['data']['summary']))
         rval = content.getvalue()
         content.close()
         return rval
+
+    def logout(self):
+        self._bw.LogoutRequest()
 
     def provider_check(self, provider_id, enterprise=False):
         if enterprise:
             resp0 = self._bw.ServiceProviderGetRequest17sp1(provider_id)
             provider_info = resp0['data']
+            print(provider_info)
             if 'isEnterprise' in provider_info and provider_info['isEnterprise'] != True:
                 raise Exception('Provider Id is not an Enterprise')
             elif 'isEnterprise' not in provider_info:
@@ -78,127 +66,146 @@ class BroadWorksDeviceMigration:
         resp0 = self._bw.GroupGetListInServiceProviderRequest(serviceProviderId=provider_id)
         return resp0['data']['groupTable']
 
-    def migrate_group(self, provider_id, group_id, **kwargs):
+    # def device_swap_filter(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
+    def device_swap_filter(self, **kwargs):
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
-        log.write("{}Migrating Group {}::{}\n".format('    '*level, provider_id, group_id))
+        device_types = self._process.parameters.get("device_types", [])
+        log.write("{}Device Swap {}::{}::{}::{}\n".format(
+            '    ' * level,
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id'],
+            self._process.parameters['department'],
+            device_types)
+        )
 
         # get devices
-        log.write('    {}Devices\n'.format('    '*level))
-        log.write('    {}GroupAccessDeviceGetListRequest({}, {}) '.format('    '*(level+1), provider_id, group_id))
-        resp3 = self._bw.GroupAccessDeviceGetListRequest(provider_id, group_id)
-        log.write(self.parse_response(resp3, level))
-        devices = resp3['data']['accessDeviceTable']
-        for device in devices:
+        log.write('    {}Devices\n'.format('    ' * level))
+        log.write('    {}GroupAccessDeviceGetListRequest({}, {}) '.format(
+            '    ' * (level + 1),
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id'])
+        )
+        devices_response = self._bw.GroupAccessDeviceGetListRequest(
+            self._process.parameters['provider_id'],
+            self._process.parameters['group_id']
+        )
+        # devices_response = {"data": {"accessDeviceTable": [
+        #     {"Device Name": "001565B61FC0", "Device Type": "Yealink-T42G", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "001565B61FC0", "Status": "Online", "Version": "Linksys/SPA2102-5.2.10",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "001565C92CCA", "Device Type": "Yealink-T46G", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "001565C92CCA", "Status": "Online", "Version": "eyeBeam release 3010n stamp 19039",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991463", "Device Type": "Polycom_VVX150", "Available Ports": 2, "Net Address": None,
+        #      "MAC Address": "", "Status": "Online", "Version": "", "Access Device External Id": ""},
+        #     {"Device Name": "6014991464", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_400-UA/5.9.5.0614_0004f28e5a79",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991464_dt", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "", "Access Device External Id": ""},
+        #     {"Device Name": "6014991465", "Device Type": "Polycom_VVX500", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_500-UA/5.9.3.2857",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991466", "Device Type": "Polycom_VVX400", "Available Ports": 12, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "Z 3.9.32144 r32121",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "6014991467", "Device Type": "Polycom_VVX300", "Available Ports": 6, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "",
+        #      "Access Device External Id": "PolycomVVX-VVX_311-UA/5.9.3.2857"},
+        #     {"Device Name": "6014991468", "Device Type": "Polycom_VVX500", "Available Ports": 16, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "Z 3.9.32144 r32121",
+        #      "Access Device External Id": ""},
+        #     {"Device Name": "Polycom VVX150", "Device Type": "Polycom_VVX150", "Available Ports": 2, "Net Address": "",
+        #      "MAC Address": "", "Status": "Online", "Version": "PolycomVVX-VVX_150-UA/6.2.0.3937_64167f39299c",
+        #      "Access Device External Id": ""},
+        # ]}}
+
+        # log.write(self.parse_response(devices_response, level))
+        devices = devices_response['data']['accessDeviceTable']
+
+        matched_devices = list()
+        if not device_types:
+            matched_devices = deepcopy(devices)
+        else:
+            for device in devices:
+                device_type = device['Device Type']
+                if device_type in device_types:
+                    matched_devices.append(device)
+
+        devices_info = dict()
+        for device in matched_devices:
             device_name = device['Device Name']
             device_type = device['Device Type']
-            if device_type == 'Polycom':
-                log.write('    {}Device {}::{}::{})\n'.format('    '*(level+1), provider_id, group_id, device_name))
-                log.write('    {}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format('    '*(level+2), provider_id, group_id, device_name))
-                resp4 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name)
-                log.write(self.parse_response(resp4, level))
-                line_ports = sorted(resp4['data']['deviceUserTable'], key=lambda k: k['Order'])
-                if len(line_ports):
-                    rdata = self.migrate_polycom_generic(provider_id=provider_id, group_id=group_id, device_name=device['Device Name'], device_type=device_type, line_ports=line_ports, level=(level+3))
-                    log.write(rdata['log'])
-                    summary.write(rdata['summary'])
+            log.write('    {}Device {}::{}::{})\n'.format(
+                '    ' * (level + 1),
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'],
+                device_name)
+            )
+            log.write('    {}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format(
+                '    ' * (level + 2),
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'],
+                device_name)
+            )
+            # users_response = {"data": {"deviceUserTable": [
+            #     {"Line/Port": "ipvevvx400@telapexinc.com", "Last Name": "vvx",
+            #      "First Name": "test", "Phone Number": "", "User Id": "ipvevvx400@telapexinc.com",
+            #      "User Type": "Normal", "Endpoint Type": "Primary", "Order": 1,
+            #      "Primary Line/Port": True, "Extension": 2589, "Department": "d1",
+            #      "Email Address": "", "Private Identity": "", "Hotline Contact": ""}
+            # ]}}
+            users_response = self._bw.GroupAccessDeviceGetUserListRequest(
+                self._process.parameters['provider_id'],
+                self._process.parameters['group_id'], device_name
+            )
+            log.write(self.parse_response(users_response, level))
+            users = users_response['data']['deviceUserTable']
+            devices_info[device_type] = {
+                "device_name": device_name, "mac_address": device["MAC Address"], "users": users
+            }
+        for device_type, device_info in devices_info.items():
+            if self._process.parameters['department'] is None:
+                devices_info[device_type]["matched_users"] = deepcopy(device_info["users"])
             else:
-                summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, '', '', 'Pass'))
-        return {'log': log.getvalue(), 'summary': summary.getvalue()}
+                matched_users = list()
+                for user in device_info["users"]:
+                    if user["Department"] == self._process.parameters['department']:
+                        matched_users.append(user)
+                devices_info[device_type]["matched_users"] = deepcopy(matched_users)
+        result = list()
 
-    def migrate_polycom_generic(self, provider_id, group_id, device_name, device_type, **kwargs):
+        for device_type, device_info in devices_info.items():
+            for user in device_info["matched_users"]:
+                result.append({"provider_id": self._process.parameters['provider_id'],
+                               "group_id": self._process.parameters['group_id'],
+                               "device_type": device_type, "mac_address": device_info["mac_address"],
+                               "department": user["Department"], "user_id": user["User Id"],
+                               "line_port": user["Line/Port"]})
+        return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
+
+    # def get_arbitary_result(self):
+    #     result = list()
+    #
+    #     for _ in range(10):
+    #         result.append({"provider_id": self._process.parameters['provider_id'],
+    #                        "group_id": self._process.parameters['group_id'],
+    #                        "device_type": 'Device Type A', "mac_address": 'Some MAC Address',
+    #                        "department": 'Department A', "user_id": '1',
+    #                        "line_port": _})
+    #     return result
+
+def swap_device(self, provider_id, group_id, device_name, device_type, **kwargs):
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
         log.write('{}Migrate Polycom Generic: {}::{}::{} ({})\n'.format('    '*level, provider_id, group_id, device_name, device_type))
-        # Determine Device Type & Info
-        if provider_id and group_id and device_name:
-            log.write('{}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-            resp0 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name)
-            log.write(self.parse_response(resp0, level))
-            users = resp0['data']['deviceUserTable']
-        elif provider_id and device_name:
-            log.write('{}ServiceProviderAccessDeviceGetUserListRequest({}, {}) '.format('    '*(level+1), provider_id, device_name))
-            resp1 = self._bw.ServiceProviderAccessDeviceGetUserListRequest(provider_id, device_name)
-            log.write(self.parse_response(resp1, level))
-            users = resp1['data']['deviceUserTable']
-        else:
-            log.write('{}Could not get device user list for {}:{}:{}, not enough data\n'.format('    '*(level+1), provider_id, group_id, device_name))
-            summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, '', '', 'Could not get device user list'))
-            return {'log': log.getvalue(), 'summary': summary.getvalue()}
-        device_user_agent = None
-        device_registered = False
-        device_uri = None
-        for user in users:
-            user_id = user['User Id']
-            log.write('{}UserGetRegistrationListRequest({}) '.format('    '*(level+1), user_id))
-            resp2 = self._bw.UserGetRegistrationListRequest(user_id)
-            log.write(self.parse_response(resp2, level))
-            registrations = resp2['data']['registrationTable']
-            for reg in registrations:
-                if reg['Device Name'] == device_name:
-                    device_user_agent = reg['User Agent']
-                    device_registered = True
-                    device_uri = reg['URI']
-                    break
-            else:
-                continue
-            break
-
-        device_type_2 = None
-        if device_user_agent is None:
-            log.write('{}Could not determine device type for {}:{}:{}, no User Agent present (not registered)\n'.format('    '*(level+1), provider_id, group_id, device_name))
-            summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, '', '', 'Could not determine device type'))
-            return {'log': log.getvalue(), 'summary': summary.getvalue()}
-        elif 'PolycomVVX-VVX_300' in device_user_agent:
-            device_suffix = 'VVX300'
-            device_type_2 = 'Polycom_VVX300'
-        elif 'PolycomVVX-VVX_310' in device_user_agent:
-            device_suffix = 'VVX310'
-            device_type_2 = 'Polycom_VVX300'
-        elif 'PolycomVVX-VVX_400' in device_user_agent:
-            device_suffix = 'VVX400'
-            device_type_2 = 'Polycom_VVX400'
-        elif 'PolycomVVX-VVX_410' in device_user_agent:
-            device_suffix = 'VVX410'
-            device_type_2 = 'Polycom_VVX400'
-        elif 'PolycomVVX-VVX_500' in device_user_agent:
-            device_suffix = 'VVX500'
-            device_type_2 = 'Polycom_VVX500'
-        elif 'PolycomVVX-VVX_600' in device_user_agent:
-            device_suffix = 'VVX600'
-            device_type_2 = 'Polycom_VVX600'
-        elif 'PolycomSoundPointIP-SPIP_335' in device_user_agent:
-            device_suffix = 'IP335'
-            device_type_2 = 'Polycom_IP335'
-        elif 'PolycomSoundPointIP-SPIP_450' in device_user_agent:
-            device_suffix = 'IP450'
-            device_type_2 = 'Polycom_IP450'
-        elif 'PolycomSoundPointIP-SPIP_550' in device_user_agent:
-            device_suffix = 'IP550'
-            device_type_2 = 'Polycom_IP550'
-        elif 'PolycomSoundPointIP-SPIP_560' in device_user_agent:
-            device_suffix = 'IP560'
-            device_type_2 = 'Polycom_IP550'
-        elif 'PolycomSoundPointIP-SPIP_650' in device_user_agent:
-            device_suffix = 'IP650'
-            device_type_2 = 'Polycom_IP650'
-        elif 'PolycomSountStationIP-SSIP_4000' in device_user_agent:
-            device_suffix = 'SSIP_4000'
-            device_type_2 = 'Polycom-conf'
-        elif 'PolycomSountStationIP-SSIP_5000' in device_user_agent:
-            device_suffix = 'SSIP_5000'
-            device_type_2 = 'Polycom-conf'
-        elif 'PolycomSountStationIP-SSIP_6000' in device_user_agent:
-            device_suffix = 'SSIP_6000'
-            device_type_2 = 'Polycom-conf'
-        else:
-            log.write('{}Could not determine device type for {}:{}:{} with UserAgent of {}\n'.format('    '*(level+1), provider_id, group_id, device_name, device_user_agent))
-            summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, '', '', 'Could not determine device type'))
-            return {'log': log.getvalue(), 'summary': summary.getvalue()}
-
-        # Retrieve Device Info
+        
+        # Device Type & Info from P1 parameters
+        
+        # Current Device Info
         if provider_id and group_id and device_name:
             log.write('{}GroupAccessDeviceGetRequest18sp1({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
             resp0 = self._bw.GroupAccessDeviceGetRequest18sp1(provider_id, group_id, device_name)
@@ -326,7 +333,7 @@ class BroadWorksDeviceMigration:
         return {'log': log.getvalue(), 'summary': summary.getvalue()}
 
 
-def device_specific_migration(process_id):
+def filter_device_swap(process_id):
     process = Process.objects.get(id=process_id)
 
     # Summary Tab
@@ -355,64 +362,39 @@ def device_specific_migration(process_id):
     log_content.raw.name = os.path.join('process', filename_raw)
     log_content.save()
 
+    content = []
+
     try:
         print("Process {}: {} -> {}".format(process_id, process.method, process.parameters))
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
 
-        dm = BroadWorksDeviceMigration(process=process)
-        content = dict()
-
-        # Retrieve Data
-        provider_type = process.parameters.get('provider_type', None)
-        provider_id = process.parameters.get('provider_id', None)
-        group_id = process.parameters.get('group_id', None)
+        ds = BroadWorkDeviceSwap(process=process)
+        content = ds.device_swap_filter()["result"]
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
         summary_html.write('<tr>\n')
-        summary_html.write('\t<th>Provider Id</th><th>Group Id</th><th>Device A Type</th><th>Device A Id</th><th>Device B Type</th><th>Device B Id</th><th>Status</th>\n')
+        summary_html.write(
+            '\t<th>Provider Id</th><th>Group Id</th><th>Device A Type</th><th>Device A Id</th><th>Device B Type'
+            '</th><th>Device B Id</th><th>Status</th>\n')
         summary_html.write('</tr>\n')
         summary_html.write('<tbody>\n')
-        summary_raw.write('"Provider Id","Group Id","Device A Type","Device A Id","Device B Type","Device B Id","Status"\n')
+        summary_raw.write(
+            '"Provider Id","Group Id","Device A Type","Device A Id","Device B Type","Device B Id","Status"\n')
 
-        if provider_id and group_id:
-            log_raw.write('Group {}::{}\n'.format(provider_id, group_id))
-            data = dm.migrate_group(provider_id=provider_id, group_id=group_id)
-            log_raw.write(data['log'])
-            summary_raw.write(data['summary'])
-            for row in csv.reader(data['summary'].split('\n')):
-                if row:
-                    summary_html.write('<tr>\n\t')
-                    for d in row:
-                        summary_html.write('<td>{}</td>'.format(d))
-                    summary_html.write('\n</tr>\n')
-        elif provider_id:
-            log_raw.write('Provider {}\n'.format(provider_id))
-            dm.provider_check(provider_id, True if provider_type == 'Enterprise' else False)
-            groups = dm.groups(provider_id)
-            for group in groups:
-                group_id = group['Group Id']
-                log_raw.write('    Group {}::{}\n'.format(provider_id, group_id))
-                data = dm.migrate_group(provider_id=provider_id, group_id=group_id, level=2)
-                log_raw.write(data['log'])
-                summary_raw.write(data['summary'])
-                for row in csv.reader(data['summary'].split('\n')):
-                    if row:
-                        summary_html.write('<tr>\n\t')
-                        for d in row:
-                            summary_html.write('<td>{}</td>'.format(d))
-                        summary_html.write('\n</tr>\n')
+        # here will be updated due to new logic.
 
         # after things are finished
         # end html
         summary_html.write('</tbody>\n')
         summary_html.write('</table>\n')
         # save data
-        process.status = process.STATUS_COMPLETED
-        process.end_timestamp = timezone.now()
-        process.save(update_fields=['status', 'end_timestamp'])
-        dm.logout()
+        process.status = process.STATUS_RUNNING
+        # process.end_timestamp = timezone.now()
+        # process.save(update_fields=['status', 'end_timestamp'])
+        process.save(update_fields=['status'])
+        # ds.logout()
     except Exception:
         process.status = process.STATUS_ERROR
         process.end_timestamp = timezone.now()
@@ -421,5 +403,7 @@ def device_specific_migration(process_id):
 
     # Cleanup
     log_raw.close()
-    summary_html.close()
     summary_raw.close()
+    summary_html.close()
+
+    return content

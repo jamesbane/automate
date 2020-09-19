@@ -25,7 +25,7 @@ from tools.models import Process
 
 # Third Party
 import django_rq
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 from lib.pypalladion.palladion import Palladion
 from lib.pyutil.django.mixins import ProcessFormMixin
 from redis import Redis

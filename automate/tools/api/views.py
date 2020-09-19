@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
 # Library
-from lib.pybw.broadworks import BroadWorks
+from lib.bw.broadworks import BroadWorks
 from lib.pypalladion.palladion import Palladion
 
 # Application

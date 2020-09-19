@@ -19,7 +19,7 @@ from tools.models import Process, ProcessContent
 
 # Third Party
 from lib.pyutil.util import Util
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 
 
 
@@ -30,7 +30,8 @@ class BroadWorksLab:
         self._process = process
         self._bw = BroadWorks(url=self._process.platform.uri,
                               username=self._process.platform.username,
-                              password=self._process.platform.password)
+                              password=self._process.platform.password,
+                              location=self._process.platform.uri)
         self._bw.LoginRequest14sp4()
 
     def parse_response(self, response, level):
@@ -120,7 +121,9 @@ class BroadWorksLab:
         resp = self._bw.ServiceProviderServicePackGetListRequest('00001')
         content.write(self.parse_response(resp, level))
         Lab_service_pack_list = resp['data']['servicePackName']
+        print(Lab_service_pack_list)
         for service_pack_name in Lab_service_pack_list:
+            print(service_pack_name)
             content.write("{}ServiceProviderServicePackGetDetailListRequest('00001', {}) ".format('    '*level, service_pack_name)),
             resp = self._bw.ServiceProviderServicePackGetDetailListRequest('00001', service_pack_name)
             content.write(self.parse_response(resp, level))
@@ -301,19 +304,22 @@ class BroadWorksLab:
 # Local variables
 #
 
-#process = {
-#    'platform': {
-#        'url': 'https://onestreamnetworks.oci-us20.bcld.io/webservice/services/ProvisioningService?wsdl',
-#        'username': 'JJjpextechpaas2@bwks.io',
-#        'password': 'M50lPE6jHZKg5FhLZDwc',
-#        'url': 'https://onestreamnetworks-sb.oci-us99.bcld.io/webservice/services/ProvisioningService?wsdl',
-#        'username': 'jpexDev_fdcvoip.net@broadcloudpbx.net',
-#        'password': '0!6~wFrzo2.ykcbi^+bkC!',
-#        'id': '12332',
-#        'seedSP': 'Fuse',
-#        'seedGrp': 'Fuse Onboard Group',
-#    }
-#}
+process = {
+    'platform': {
+        #'url': 'https://labxsp1.impulsevoip.net/webservice/services/ProvisioningService?wsdl',
+        #'username': 'JJjpextechpaas2@bwks.io',
+        #'password': 'M50lPE6jHZKg5FhLZDwc',
+        #'url': 'https://onestreamnetworks-sb.oci-us99.bcld.io/webservice/services/ProvisioningService?wsdl',
+        #'username': 'jpexDev_fdcvoip.net@broadcloudpbx.net',
+        #'password': '0!6~wFrzo2.ykcbi^+bkC!',
+        #'id': '12332',
+        #'seedSP': 'Fuse',
+        #'seedGrp': 'Fuse Onboard Group',
+    }
+}
+platform = {
+    'url': 'https://labxsp1.impulsevoip.net/webservice/services/ProvisioningService?wsdl'
+}
 
 provider = {
     'id': '0301_Lab',
