@@ -30,7 +30,7 @@ class DeviceType(models.Model):
         ordering = ('manufacturer', 'model')
 
     def __str__(self):
-        return f'{self.manufacturer} - {self.model}'
+        return f'{self.manufacturer}'
 
 
 class Device(models.Model):

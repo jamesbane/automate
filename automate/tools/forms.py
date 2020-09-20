@@ -163,10 +163,8 @@ class DeviceSwapSubmitResultForm(forms.Form):
     department = forms.CharField(label='Department', required=True,
                                  max_length=256,
                                  widget=forms.TextInput(attrs={'required': 'true'}))
-    user_id = forms.IntegerField(label='User ID', required=True,
-                                 widget=forms.NumberInput(attrs={'required': 'true'}))
-    line_port = forms.IntegerField(label='Line/Port', required=True,
-                                   widget=forms.NumberInput(attrs={'required': 'true'}))
+    user_id = forms.CharField(label='User ID', required=True, max_length=256,)
+    line_port = forms.CharField(label='Line/Port', required=True, max_length=256)
 
     javascript = static('tools/device_swap_filter_result.js')
 

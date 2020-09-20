@@ -138,12 +138,13 @@ class BroadWorkDeviceSwap:
         #      "Access Device External Id": ""},
         # ]}}
 
-        log.write(self.parse_response(devices_response, level))
-        devices = devices_response['data']['accessDeviceTable']
+        # FIXME
+        # log.write(self.parse_response(devices_response, level))
 
+        devices = devices_response['data']['accessDeviceTable']
         for device in devices:
             parsed_version = self.parse_version(device['Version'])
-            device['Device Type'] = parsed_version['device_type']
+            device['Device Type'] = parsed_version['device_type'] or device['Device Type']
             device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
 
         matched_devices = list()
@@ -182,7 +183,10 @@ class BroadWorkDeviceSwap:
                 self._process.parameters['provider_id'],
                 self._process.parameters['group_id'], device_name
             )
-            log.write(self.parse_response(users_response, level))
+
+            # FIXME
+            # log.write(self.parse_response(users_response, level))
+
             users = users_response['data']['deviceUserTable']
             devices_info[device_type] = {
                 "device_name": device_name, "mac_address": device["MAC Address"], "users": users
