@@ -12,7 +12,7 @@ from sansayvcm_client.models import RouteTableLog
 
 class VcmClient:
 
-    def __init__(self, action, element):
+    def __init__(self):
         self._baseUrl = 'https://labvcm.impulsevoip.net:8888'
         self._action = 'update'
         self._element = 'route' 
