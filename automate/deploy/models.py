@@ -30,7 +30,7 @@ class DeviceType(models.Model):
         ordering = ('manufacturer', 'model')
 
     def __str__(self):
-        return f'{self.manufacturer}'
+        return f'{self.manufacturer}{self.model}'
 
 
 class Device(models.Model):
@@ -49,8 +49,8 @@ class Device(models.Model):
     CHOICES_STATE_PRIMARY = (STATE_CLEAR, STATE_SCHEDULED, STATE_RUNNING,)
     CHOICES_STATE_SUCCESS = (STATE_PROVISIONED,)
     CHOICES_STATE_ERROR = (STATE_ERROR,)
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL,null=True, related_name='devices')
-    device_type = models.ForeignKey('DeviceType',on_delete=models.SET_NULL, null=True, related_name='devices')
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, related_name='devices')
+    device_type = models.ForeignKey('DeviceType', on_delete=models.SET_NULL, null=True, related_name='devices')
     state = models.SmallIntegerField(null=False, default=STATE_CLEAR, choices=CHOICES_STATE_ALL)
     name = models.CharField(max_length=24, unique=True)
     serial = NullCharField(max_length=12, unique=True, null=True, blank=True, default=None)

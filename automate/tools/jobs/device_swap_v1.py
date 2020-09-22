@@ -192,7 +192,7 @@ class BroadWorkDeviceSwap:
                 "device_name": device_name, "mac_address": device["MAC Address"], "users": users
             }
         for device_type, device_info in devices_info.items():
-            if self._process.parameters['department'] is None:
+            if self._process.parameters['department'] is None and self._process.parameters != '':
                 devices_info[device_type]["matched_users"] = deepcopy(device_info["users"])
             else:
                 matched_users = list()

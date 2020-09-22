@@ -184,7 +184,7 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         """
         parameters = form.cleaned_data
         platform = parameters.pop('platform')
-        device_types = [device_type.model for device_type in parameters.get("device_types", [])]
+        device_types = [str(device_type) for device_type in parameters.get("device_types", [])]
         parameters["device_types"] = device_types
 
         # FIXME duplicate code with parent
