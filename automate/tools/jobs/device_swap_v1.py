@@ -82,18 +82,18 @@ class BroadWorkDeviceSwap:
                 return line_port
         return None
 
-    # def device_swap_filter(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
+    # def device_swap_filter(self, group_id, input_device_types, department=None, provider_id=1003, **kwargs):
     def device_swap_filter(self, **kwargs):
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
-        device_types = self._process.parameters.get("device_types", [])
+        input_device_types = self._process.parameters.get("input_device_types", [])
         log.write("{}Device Swap {}::{}::{}::{}\n".format(
             '    ' * level,
             self._process.parameters['provider_id'],
             self._process.parameters['group_id'],
             self._process.parameters['department'],
-            device_types)
+            input_device_types)
         )
 
         # get devices
@@ -148,12 +148,12 @@ class BroadWorkDeviceSwap:
             device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
 
         matched_devices = list()
-        if not device_types:
+        if not input_device_types:
             matched_devices = deepcopy(devices)
         else:
             for device in devices:
                 device_type = device['Device Type']
-                if device_type == '' or device_type in device_types:
+                if device_type == '' or device_type in input_device_types:
                     matched_devices.append(device)
 
         devices_info = dict()

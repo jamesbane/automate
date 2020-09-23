@@ -134,7 +134,7 @@ class DeviceSwapFilterForm(ProviderGroupForm):
     provider_id = forms.CharField(label='Provider Id', required=True)
     group_id = forms.CharField(label='Group Id', required=True)
     DEVICE_TYPE_CHOICES = tuple((dt, dt) for dt in DeviceType.objects.all())
-    device_types = forms.MultipleChoiceField(choices=DEVICE_TYPE_CHOICES, required=False)
+    input_device_types = forms.MultipleChoiceField(label='Filter by Device Type', choices=DEVICE_TYPE_CHOICES, required=False)
     department = forms.CharField(label='Department', required=False, max_length=256)
 
 
