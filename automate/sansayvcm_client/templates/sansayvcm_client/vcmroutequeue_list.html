@@ -1,0 +1,63 @@
+{% extends 'sansayvcm_client/index.html' %}
+
+{% block tool_content %}
+
+<div class="card">
+    <div class="card-header">VCM Route Queue</div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>Operation</th>
+                    <th>XML Config</th>
+                    <th>Status</th>
+                    <th>Transaction Date</th>
+		    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                <tr>
+                    <td>{{object.number}}</td>
+                    <td>{{object.action}}</td>
+                    <td>
+                        <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="bottom">
+                                XML Config
+                        </button>
+                        <span class="hidden"><p><pre>{{object.xmlcfg}}</pre></p></span>
+                    </td>
+                    <td>{{object.status}}</td>
+                    <td>{{object.create_date}}</td>
+		    <td>
+			<button type="button" class="btn btn-success">Process</button>
+			{% if object.status == 'error' %}
+			<button type="button" class="btn btn-danger">Errors</button>
+			{% endif %}
+		    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock tool_content %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready( function() {
+            $(function() {
+                $('[data-toggle="popover"]').popover({
+                    html: true,
+                    content: function() {
+                        return $(this).siblings('span').html();
+                    },
+                    container: 'body'
+                });
+
+            });
+        });
+    </script>
+{% endblock javascript %}

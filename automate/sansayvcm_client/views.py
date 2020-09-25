@@ -13,11 +13,13 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import exception_handler
 
 #Automate
 import sansayvcm_client.forms
 from sansayvcm_client.vcmclient import VcmClient
 from sansayvcm_client.models import RouteTableLog, VcmRouteQueue
+from sansayvcm_client.serializers import UserSerializer
 
 class IndexView(TemplateView):
     template_name = 'sansayvcm_client/index.html'
@@ -46,6 +48,11 @@ class VcmLogView(ListView):
     paginate_by = 100
     javascript = static('sansayvcm_client/routetablelog_list.js')
 
+class VcmRouteQueueView(ListView):
+    model = VcmRouteQueue
+    paginate_by = 50
+
+
 class VcmRoutes(APIView):
 
     def post(self, request):
@@ -61,5 +68,7 @@ class VcmRoutes(APIView):
         queue = VcmRouteQueue(uuid=1234, create_date=data['created_date'], xmlcfg=str(etree.tostring(xmlCfg), 'utf-8'), status='pending')
         queue.save()
 
-        return Response(str(etree.tostring(xmlCfg), 'utf-8'))
+        return Response({'status': 'Created'}, status=status.HTTP_201_CREATED)
 
+    def get(self, request):
+        return Response(None, status=status.HTTP_404_NOT_FOUND)
