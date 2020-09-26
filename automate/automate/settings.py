@@ -140,7 +140,7 @@ AUTHENTICATION_BACKENDS = [
 # 
 #    }
 #}
-if DEBUG:
+if not DEBUG:
     DATABASES = {'default': dj_database_url.config()}
 else:
     DATABASES = {

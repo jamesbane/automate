@@ -13,14 +13,17 @@
         Fill here
     </pre>
 
-    <div class="well">
-      <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <p><label></label><input id="submit" type="submit" value="Filter"/></p>
-      </form>
+    <div class="card-body">
+      <div class="form-group row">
+        <form method="POST">
+          {% csrf_token %}
+          <table>
+            {{ form.as_table }}
+          </table>
+          <p><label></label><input id="submit" type="submit" value="Filter Devices"/></p>
+        </form>
+      </div>
     </div>
-  </div>
 {% endblock tool_content %}
 
 {% block javascript %}
