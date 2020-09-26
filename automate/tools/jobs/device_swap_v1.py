@@ -142,19 +142,19 @@ class BroadWorkDeviceSwap:
         # log.write(self.parse_response(devices_response, level))
 
         devices = devices_response['data']['accessDeviceTable']
-        for device in devices:
-            parsed_version = self.parse_version(device['Version'])
-            device['Device Type'] = parsed_version['device_type'] or device['Device Type']
-            device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
-
         matched_devices = list()
         if not input_device_types:
             matched_devices = deepcopy(devices)
         else:
             for device in devices:
                 device_type = device['Device Type']
-                if device_type == '' or device_type in input_device_types:
+                if device_type in input_device_types:
                     matched_devices.append(device)
+
+        for device in devices:
+            parsed_version = self.parse_version(device['Version'])
+            device['Device Type'] = parsed_version['device_type'] or device['Device Type']
+            device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
 
         devices_info = dict()
         for device in matched_devices:
