@@ -17,7 +17,7 @@ import string
 import random
 import logging
 import dj_database_url
-from decouple import config
+
 
 #from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
@@ -140,7 +140,7 @@ AUTHENTICATION_BACKENDS = [
 # 
 #    }
 #}
-if not DEBUG:
+if DEBUG:
     DATABASES = {'default': dj_database_url.config()}
 else:
     DATABASES = {

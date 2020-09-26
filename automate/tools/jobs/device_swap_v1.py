@@ -188,27 +188,35 @@ class BroadWorkDeviceSwap:
             # log.write(self.parse_response(users_response, level))
 
             users = users_response['data']['deviceUserTable']
-            devices_info[device_type] = {
-                "device_name": device_name, "mac_address": device["MAC Address"], "users": users
-            }
-        for device_type, device_info in devices_info.items():
-            if self._process.parameters['department'] is None and self._process.parameters != '':
-                devices_info[device_type]["matched_users"] = deepcopy(device_info["users"])
-            else:
-                matched_users = list()
-                for user in device_info["users"]:
-                    if user["Department"] == self._process.parameters['department']:
-                        matched_users.append(user)
-                devices_info[device_type]["matched_users"] = deepcopy(matched_users)
-        result = list()
 
-        for device_type, device_info in devices_info.items():
-            for user in device_info["matched_users"]:
-                result.append({"provider_id": self._process.parameters['provider_id'],
-                               "group_id": self._process.parameters['group_id'],
-                               "device_type": device_type, "mac_address": device_info["mac_address"],
-                               "department": user["Department"], "user_id": user["User Id"],
-                               "line_port": user["Line/Port"]})
+            devices_info[device_type] = devices_info.get(device_type, list())
+            devices_info[device_type].append(
+                {"device_name": device_name,
+                 "mac_address": device["MAC Address"],
+                 "users": users}
+            )
+
+        for device_type, device_info_list in devices_info.items():
+            for device_info in device_info_list:
+                if self._process.parameters['department'] is None and self._process.parameters != '':
+                    device_info["matched_users"] = deepcopy(device_info["users"])
+                else:
+                    matched_users = list()
+                    for user in device_info["users"]:
+                        if user["Department"] == self._process.parameters['department'] or self._process.parameters[
+                            'department'] == '':
+                            matched_users.append(user)
+                    device_info["matched_users"] = deepcopy(matched_users)
+
+        result = list()
+        for device_type, device_info_list in devices_info.items():
+            for device_info in device_info_list:
+                for user in device_info["matched_users"]:
+                    result.append({"provider_id": self._process.parameters['provider_id'],
+                                   "group_id": self._process.parameters['group_id'],
+                                   "device_type": device_type, "mac_address": device_info["mac_address"],
+                                   "department": user["Department"], "user_id": user["User Id"],
+                                   "line_port": user["Line/Port"]})
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
     def parse_version(self, version):
@@ -219,6 +227,9 @@ class BroadWorkDeviceSwap:
         """
 
         device_type, mac_address = ('',) * 2
+        if version is None:
+            return locals()
+
         if not version.lower().startswith('polycom'):
             return locals()
 
