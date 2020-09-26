@@ -133,7 +133,7 @@ class EmptyForm(BroadworksPlatformForm):
 class DeviceSwapFilterForm(ProviderGroupForm):
     provider_id = forms.CharField(label='Provider Id', required=True)
     group_id = forms.CharField(label='Group Id', required=True)
-    DEVICE_TYPE_CHOICES = tuple((dt, dt) for dt in DeviceType.objects.all())
+    DEVICE_TYPE_CHOICES = tuple((dt.switch_type, dt.switch_type) for dt in DeviceType.objects.all())
     input_device_types = forms.MultipleChoiceField(label='Filter by Device Type', choices=DEVICE_TYPE_CHOICES, required=False)
     department = forms.CharField(label='Department', required=False, max_length=256)
 
@@ -159,11 +159,10 @@ class DeviceSwapSubmitResultForm(forms.Form):
                                   widget=ReadOnlyTextField)
     device_type = forms.CharField(label='Device Type', required=True,
                                   widget=forms.TextInput(attrs={'required': 'true'}))
-    mac_address = forms.CharField(label='MAC Address', max_length=17,
-                                  widget=forms.TextInput(attrs={'required': 'true'}))
-    department = forms.CharField(label='Department', required=True,
-                                 max_length=256,
-                                 widget=forms.TextInput(attrs={'required': 'true'}))
+    mac_address = forms.CharField(label='MAC Address', max_length=17, required=False,
+                                  widget=forms.TextInput())
+    department = forms.CharField(label='Department', required=False,
+                                 max_length=256, widget=forms.TextInput())
     user_id = forms.CharField(label='User ID', required=True, max_length=256,)
     line_port = forms.CharField(label='Line/Port', required=True, max_length=256)
 
