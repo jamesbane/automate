@@ -66,8 +66,8 @@ class BroadWorkDeviceSwapPh2:
         resp0 = self._bw.GroupGetListInServiceProviderRequest(serviceProviderId=provider_id)
         return resp0['data']['groupTable']
 
-    # def device_swap_filter(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
-    def device_swap_filter(self, **kwargs):
+    # def device_swap(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
+    def device_swap(self, **kwargs):
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
@@ -370,7 +370,7 @@ def filter_device_swap(process_id):
         process.save(update_fields=['status'])
 
         ds = BroadWorkDeviceSwap(process=process)
-        content = ds.device_swap_filter()["result"]
+        content = ds.device_swap()["result"]
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')

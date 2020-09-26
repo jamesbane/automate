@@ -26,11 +26,12 @@ class DeviceType(models.Model):
     serial_format = models.CharField(max_length=256, blank=True)
     switch_type = models.CharField(max_length=256, unique=True)
 
+
     class Meta:
         ordering = ('manufacturer', 'model')
 
     def __str__(self):
-        return f'{self.manufacturer}{self.model}'
+        return f'{self.switch_type}'
 
 
 class Device(models.Model):
