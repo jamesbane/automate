@@ -42,6 +42,7 @@ class RouteTableLog(models.Model):
 class VcmRouteQueue(models.Model):
     uuid = models.IntegerField()
     number = models.CharField(max_length=64)
+    alias = models.CharField(max_length=64)
     action = models.CharField(max_length=32)
     create_date = models.DateTimeField(null=False, default=datetime.now)
     xmlcfg = models.TextField(null=False)
@@ -50,3 +51,5 @@ class VcmRouteQueue(models.Model):
     class Meta:
         ordering = ('-create_date',)
 
+    def get_status(self):
+        return self.status.capitalize()

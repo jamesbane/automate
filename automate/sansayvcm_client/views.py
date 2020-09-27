@@ -1,6 +1,7 @@
 import os
 import json
 from lxml import etree
+from datetime import datetime
 
 #django
 from django.http import HttpResponseRedirect
@@ -19,7 +20,7 @@ from rest_framework.views import exception_handler
 import sansayvcm_client.forms
 from sansayvcm_client.vcmclient import VcmClient
 from sansayvcm_client.models import RouteTableLog, VcmRouteQueue
-from sansayvcm_client.serializers import UserSerializer
+from sansayvcm_client.serializers import VcmRouteSerializer, VcmRouteMetadataSerializer
 
 class IndexView(TemplateView):
     template_name = 'sansayvcm_client/index.html'
@@ -57,15 +58,44 @@ class VcmRoutes(APIView):
 
     def post(self, request):
         data = json.loads(request.body.decode("utf-8"))
+        created = data['created_date'] if data['created_date'] != None else datetime.now()
+
+        # Validate the data['metadata'] object
+        serialized = VcmRouteMetadataSerializer(data=data['metadata'])
+        if serialized.is_valid():
+            data = serialized.validated_data
+        else:
+            return Response(
+                {
+                    'status': 'Errors found',
+                    'errors': serialized.errors
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        number = data['identifier']
+        # normalize the number to 10 digit
+        if '+1' in number:
+            number = number.replace('+1', '')
+
+        alias = 'Cust ' + str(data['customer_id']) + ' ' + number
         
         xmlCfg = etree.parse(os.path.abspath('sansayvcm_client/configs/route.xml'))
         for field in xmlCfg.iter():
             if field.tag == 'alias':
-                field.text = 'Customer: ' + str(data['metadata']['customer_id']) 
+                field.text = alias
             if field.tag == 'digitMatch':
-                field.text = data['metadata']['identifier']
+                field.text = number
 
-        queue = VcmRouteQueue(uuid=1234, create_date=data['created_date'], xmlcfg=str(etree.tostring(xmlCfg), 'utf-8'), status='pending')
+        queue = VcmRouteQueue(
+            uuid=1234,
+            number=number,
+            alias=alias,
+            action=data['status'],
+            create_date=created, 
+            xmlcfg=str(etree.tostring(xmlCfg), 'utf-8'), 
+            status='pending'
+        )
         queue.save()
 
         return Response({'status': 'Created'}, status=status.HTTP_201_CREATED)
