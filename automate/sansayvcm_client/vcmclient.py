@@ -17,12 +17,12 @@ class VcmClient:
         self._action = 'update'
         self._element = 'route' 
         
-        if action in ['update', 'replace', 'delete', 'download']:
-            self._action = action
+        #if self.action in ['update', 'replace', 'delete', 'download']:
+        #    self._action = action
 
         # Will there be other elements allowed?
-        if element in ['route']:
-            self._element = element
+        #if element in ['route']:
+        #    self._element = element
 
     def _logVcmRequest(self, req, resp):
         now = datetime.now()
@@ -51,6 +51,16 @@ class VcmClient:
         archive = io.BytesIO()
         with ZipFile(archive, 'w') as zip_archive:
             zip_archive.writestr('config.xml', str(etree.tostring(xmlCfg), 'utf-8'))
+
+        return archive
+
+    def buildArchive(self, configs):
+        archive = io.BytesIO()
+        with ZipFile(archive, 'w') as zip_archive:
+            for config in configs:
+                xmlcfg = etree.fromstring(config.xmlcfg)
+                filename = 'file-' + str(config.id) + '.xml'
+                zip_archive.writestr(filename, str(etree.tostring(xmlcfg), 'utf-8'))
 
         return archive
 
