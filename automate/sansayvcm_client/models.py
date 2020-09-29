@@ -6,6 +6,7 @@ class SansayVcmServer(models.Model):
     uri = models.CharField(max_length=1021)
     username = models.CharField(max_length=256)
     password = models.CharField(max_length=256)
+    client_id = models.IntegerField()
     
     class Meta:
         ordering = ('name',)

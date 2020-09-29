@@ -56,7 +56,7 @@ class VcmRouteQueueView(ListView):
 
 class VcmRoutes(APIView):
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         data = json.loads(request.body.decode("utf-8"))
         created = data['created_date'] if data['created_date'] != None else datetime.now()
 
@@ -88,7 +88,7 @@ class VcmRoutes(APIView):
                 field.text = number
 
         queue = VcmRouteQueue(
-            uuid=1234,
+            uuid=kwargs['uuid'],
             number=number,
             alias=alias,
             action=data['status'],

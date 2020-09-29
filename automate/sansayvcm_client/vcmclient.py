@@ -8,21 +8,17 @@ from datetime import datetime
 from urllib.parse import urlencode
 from zipfile import ZipFile
 from lxml import etree
-from sansayvcm_client.models import RouteTableLog 
+from sansayvcm_client.models import RouteTableLog, SansayVcmServer
 
 class VcmClient:
 
-    def __init__(self):
-        self._baseUrl = 'https://labvcm.impulsevoip.net:8888'
+    def __init__(self, client_id):
+        server = SansayVcmServer.objects.get(client_id__exact=client_id)
+
+        #need to check here if server doesnt exist or there are more than 1
+        self._baseUrl = server.uri
         self._action = 'update'
         self._element = 'route' 
-        
-        #if self.action in ['update', 'replace', 'delete', 'download']:
-        #    self._action = action
-
-        # Will there be other elements allowed?
-        #if element in ['route']:
-        #    self._element = element
 
     def _logVcmRequest(self, req, resp):
         now = datetime.now()
@@ -39,20 +35,6 @@ class VcmClient:
     def _getVcmUrl(self, cluster):
         url = self._baseUrl + "/ROME/webresources/hrs/" + self._action + "/VSXi_" + self._element + "?clusterID=" + cluster
         return url
-
-    def _getConfigFile(self, desc, number):
-        xmlCfg = etree.parse(os.path.abspath('sansayvcm_client/configs/route.xml'))
-        for field in xmlCfg.iter():
-            if field.tag == 'alias':
-                field.text = desc
-            if field.tag == 'digitMatch':
-                field.text = number
-
-        archive = io.BytesIO()
-        with ZipFile(archive, 'w') as zip_archive:
-            zip_archive.writestr('config.xml', str(etree.tostring(xmlCfg), 'utf-8'))
-
-        return archive
 
     def buildArchive(self, configs):
         archive = io.BytesIO()
@@ -94,9 +76,10 @@ class VcmClient:
         body = buffer.getvalue()
         return status
 
-    def send(self, cluster, desc, number):
+    #def send(self, cluster, desc, number):
+    def send(self, cluster, action, cfg):
+        self._action = action
         url = self._getVcmUrl(cluster)
-        cfg = self._getConfigFile(desc, number)
 
         crl = self._buildCurlReq(url)
         crl.setopt(crl.HTTPPOST, [
@@ -107,6 +90,10 @@ class VcmClient:
             )),
         ])
 
+        # if delete, set HTTP req type to DELETE
+        if self._action == 'delete':
+            crl.setopt(pycurl.CUSTOMREQUEST, "DELETE")
+
         crl.perform()
         status = crl.getinfo(crl.RESPONSE_CODE)
         crl.close()
@@ -115,16 +102,15 @@ class VcmClient:
 
         # Log the request/response
         with ZipFile(cfg) as z:
-            with z.open('config.xml') as f:
-                xmlstr = f.read().decode("utf-8")
+            files = z.namelist()
+            for name in files:
+                with z.open(name) as f:
+                    xmlstr = f.read().decode("utf-8")
+                    xmlobj = etree.fromstring(xmlstr)
+                    number = xmlobj.find('./XBRoute/digitMatch').text
 
-        req = {"cluster_id": cluster, "number": number, "action": "update", "xmlcfg": xmlstr }
-        resp = {"status": status}
-        self._logVcmRequest(req, resp)
+                req = {"cluster_id": cluster, "number": number, "action": self._action, "xmlcfg": xmlstr }
+                resp = {"status": status}
+                self._logVcmRequest(req, resp)
 
         return status
-
-#x = VcmClient('update', 'route')
-#x.send('2', 'Test Client Dev301Solutions', '8058845678')
-#x._pushClusterConfig('2')
-

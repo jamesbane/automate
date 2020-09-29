@@ -10,10 +10,10 @@
                 <tr>
                     <th>Number</th>
                     <th>Cluster</th>
-                    <th>Action</th>
-                    <th>XML Config</th>
+                    <th>Type</th>
                     <th>Status</th>
                     <th>Transaction Date</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,14 +22,30 @@
                     <td>{{object.number}}</td>
                     <td>{{object.cluster_id}}</td>
                     <td>{{object.action}}</td>
-                    <td>
-                        <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="bottom">
-                                XML Config
-                        </button>
-                        <span class="hidden"><p><pre>{{object.xmlcfg}}</pre></p></span>
-                    </td>
                     <td>{{object.result_status}}</td>
                     <td>{{object.created}}</td>
+                    <td>
+                        <div class="row">
+                            <div class="col">
+                                <a href="#" title="View XML Config" data-toggle="modal" data-target="#xml-{{object.id}}"><i class="far fa-file-excel fa-2x"></i></a>
+                                <div class="modal fade" id="xml-{{object.id}}" tabindex="-1" role="dialog">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">XML Config File</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><pre>{{object.xmlcfg}}</pre></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+		            </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -42,17 +58,6 @@
 {% block javascript %}
     {{ block.super }}
     <script type="text/javascript">
-        $(document).ready( function() {
-            $(function() {
-                $('[data-toggle="popover"]').popover({
-                    html: true,
-                    content: function() {
-                        return $(this).siblings('span').html();
-                    },
-                    container: 'body'
-                });
-
-            });
-        });
+       
     </script>
 {% endblock javascript %}
