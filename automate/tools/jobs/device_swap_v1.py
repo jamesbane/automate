@@ -152,7 +152,7 @@ class BroadWorkDeviceSwap:
                     matched_devices.append(device)
 
         for device in devices:
-            parsed_version = self.parse_version(device['Version'])
+            parsed_version = BroadWorkDeviceSwap.parse_version(device['Version'])
             device['Device Type'] = parsed_version['device_type'] or device['Device Type']
             device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
 
@@ -219,7 +219,8 @@ class BroadWorkDeviceSwap:
                                    "line_port": user["Line/Port"]})
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
-    def parse_version(self, version):
+    @staticmethod
+    def parse_version(version):
         """
         # currently supports Polycom devices only
 
@@ -234,11 +235,13 @@ class BroadWorkDeviceSwap:
             return locals()
 
         try:
-            left, right = version.split('/')
-            device_type = re.findall(r'^(?i)Polycom.*', left)[0]
+            parts = version.split('/')
+            if len(parts) > 2:
+                del parts[0]
+            mac_address = re.findall(r'[0-9a-fA-F]{12}', parts[1])[0]
+            device_type = re.findall(r'(?i)Polycom.*', parts[0])[0]
             if device_type.endswith('-UA'):
                 device_type = device_type.replace('-UA', '')
-            mac_address = re.findall(r'[0-9a-fA-F]{12}', right)[0]
         except (IndexError, ValueError):
             pass
         return locals()
