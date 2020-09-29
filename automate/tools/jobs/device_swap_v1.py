@@ -19,7 +19,7 @@ from tools.models import (Process, ProcessContent)
 from lib.bw.broadworks import (BroadWorks, Nil)
 
 
-class BroadWorkDeviceSwap:
+class BroadWorkDeviceSwapFilter:
     _bw = None
     _content = io.StringIO()
 
@@ -294,7 +294,7 @@ def filter_device_swap(process_id):
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
 
-        ds = BroadWorkDeviceSwap(process=process)
+        ds = BroadWorkDeviceSwapFilter(process=process)
         content = ds.device_swap_filter()["result"]
 
         # Initial content
