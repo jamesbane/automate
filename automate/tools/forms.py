@@ -8,7 +8,7 @@ from platforms.models import BroadworksPlatform
 
 from deploy.models import DeviceType
 
-from tools.jobs.device_swap_v1 import BroadWorkDeviceSwap
+from tools.jobs.device_swap_v1 import BroadWorkDeviceSwapFilter
 
 
 class BroadworksPlatformForm(forms.Form):

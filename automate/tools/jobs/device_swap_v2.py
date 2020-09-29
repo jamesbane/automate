@@ -16,6 +16,7 @@ from tools.models import (Process, ProcessContent)
 
 # Third Party
 from lib.bw.broadworks import (BroadWorks, Nil)
+from lib.bw.util import (Util, Nil)
 
 
 class BroadWorkDeviceSwapPh2:
@@ -51,23 +52,23 @@ class BroadWorkDeviceSwapPh2:
 
     def logout(self):
         self._bw.LogoutRequest()
+    
+    @staticmethod
+    def has_primary_line_port(device_user_table):
+        for line_port in device_user_table:
+            if line_port['Primary Line/Port'] == 'true':
+                return True
+        return False
 
-    def provider_check(self, provider_id, enterprise=False):
-        if enterprise:
-            resp0 = self._bw.ServiceProviderGetRequest17sp1(provider_id)
-            provider_info = resp0['data']
-            print(provider_info)
-            if 'isEnterprise' in provider_info and provider_info['isEnterprise'] != True:
-                raise Exception('Provider Id is not an Enterprise')
-            elif 'isEnterprise' not in provider_info:
-                raise Exception('Provider Id is not an Enterprise')
-
-    def groups(self, provider_id):
-        resp0 = self._bw.GroupGetListInServiceProviderRequest(serviceProviderId=provider_id)
-        return resp0['data']['groupTable']
-
+    @staticmethod
+    def get_first_primary_line_port(line_ports):
+        for line_port in line_ports:
+            if line_port['Endpoint Type'] == 'Primary':
+                return line_port
+        return None
+    
     # def device_swap(self, group_id, device_types, department=None, provider_id=1003, **kwargs):
-    def device_swap(self, **kwargs):
+    def device_swap(self, provider_id, group_id, device_name, **kwargs):
         log = io.StringIO()
         summary = io.StringIO()
         level = kwargs.get('level', 0)
@@ -79,12 +80,15 @@ class BroadWorkDeviceSwapPh2:
             self._process.parameters['department'],
             device_types)
         )
+        # Args from Ph1
         
+
         # new device info
         device_name_2 = '{}_{}'.format(device_name, device_suffix)
         device_type_2 = kwargs['new_device_type']
-        device_username_2 = device_info['userName']
-        device_password_2 = Util.random_password(length=16, specials=False)
+        device_mac_address_2 = kwargs['mac_address']
+        #device_username_2 = device_info['userName']
+        #device_password_2 = Util.random_password(length=16, specials=False)
 
         # Set existing device's primary line/port (if necessary)
         if 'line_ports' in kwargs:
@@ -94,16 +98,16 @@ class BroadWorkDeviceSwapPh2:
             resp0 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name)
             log.write(self.parse_response(resp0, level))
             line_ports = sorted(resp0['data']['deviceUserTable'], key=lambda k: k['Order'])
-        if len(line_ports) > 0 and not BroadWorksDeviceMigration.has_primary_line_port(line_ports):
-            line_port = BroadWorksDeviceMigration.get_first_primary_line_port(line_ports)
+        if len(line_ports) > 0 and not BroadWorkDeviceSwapPh2.has_primary_line_port(line_ports):
+            line_port = BroadWorkDeviceSwapPh2.get_first_primary_line_port(line_ports)
             if line_port is not None:
                 log.write('{}GroupAccessDeviceModifyUserRequest({}, {}, {}, {}, isPrimaryLinePort={}) '.format('    '*(level+1), provider_id, group_id, device_name, line_port['Line/Port'], True))
                 resp1 = self._bw.GroupAccessDeviceModifyUserRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name, linePort=line_port['Line/Port'], isPrimaryLinePort=True)
                 log.write(self.parse_response(resp1, level))
 
         # Create new device
-        log.write('{}GroupAccessDeviceAddRequest14({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, device_type_2, device_username_2, device_password_2))
-        resp1 = self._bw.GroupAccessDeviceAddRequest14(provider_id, group_id, device_name_2, device_type_2, username=device_username_2, password=device_password_2)
+        log.write('{}GroupAccessDeviceAddRequest14({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, device_type_2, device_mac_address, device_username_2, device_password_2))
+        resp1 = self._bw.GroupAccessDeviceAddRequest14(provider_id, group_id, device_name_2, device_type_2, device_mac_address, username=device_username_2, password=device_password_2)
         log.write(self.parse_response(resp1, level))
         if resp1['type'] == 'c:ErrorResponse':
             # could not build device, ruh roh!
@@ -116,10 +120,9 @@ class BroadWorkDeviceSwapPh2:
         log.write(self.parse_response(resp2, level))
         device_tags = resp2['data']['deviceCustomTagsTable']
         for tag in device_tags:
-            if tag['Tag Name'] not in ['%APP_VERSION%', '%APP_VERSION_VVX-400%', '%APP_VERSION_VVX-500%', '%APP_VERSION_VVX-600%']:
-                log.write('{}GroupAccessDeviceCustomTagAddRequest({}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value']))
-                resp3 = self._bw.GroupAccessDeviceCustomTagAddRequest(provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value'])
-                log.write(self.parse_response(resp3, level))
+            log.write('{}GroupAccessDeviceCustomTagAddRequest({}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value']))
+            resp3 = self._bw.GroupAccessDeviceCustomTagAddRequest(provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value'])
+            log.write(self.parse_response(resp3, level))
         
         # Move line/ports from old to new device
         for line_port in line_ports:
@@ -164,8 +167,8 @@ class BroadWorkDeviceSwapPh2:
         resp11 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name_2)
         log.write(self.parse_response(resp11, level))
         line_ports = sorted(resp11['data']['deviceUserTable'], key=lambda k: k['Order'])
-        if len(line_ports) > 0 and not BroadWorksDeviceMigration.has_primary_line_port(line_ports):
-            line_port = BroadWorksDeviceMigration.get_first_primary_line_port(line_ports)
+        if len(line_ports) > 0 and not BroadWorkDeviceSwapPh2.has_primary_line_port(line_ports):
+            line_port = BroadWorkDeviceSwapPh2.get_first_primary_line_port(line_ports)
             if line_port is not None:
                 log.write('{}GroupAccessDeviceModifyUserRequest({}, {}, {}, {}, isPrimaryLinePort=True) '.format('    '*(level+1), provider_id, group_id, device_name_2, line_port['Line/Port']))
                 resp11 = self._bw.GroupAccessDeviceModifyUserRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name_2, linePort=line_port['Line/Port'], isPrimaryLinePort=True)
@@ -177,143 +180,9 @@ class BroadWorkDeviceSwapPh2:
         return {'log': log.getvalue(), 'summary': summary.getvalue()}
 
 
-def swap_device(self, provider_id, group_id, device_name, device_type, **kwargs):
-        log = io.StringIO()
-        summary = io.StringIO()
-        level = kwargs.get('level', 0)
-        log.write('{}Migrate Polycom Generic: {}::{}::{} ({})\n'.format('    '*level, provider_id, group_id, device_name, device_type))
-        
-        # Device Type & Info from P1 parameters
-        
-        # Current Device Info
-        if provider_id and group_id and device_name:
-            log.write('{}GroupAccessDeviceGetRequest18sp1({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-            resp0 = self._bw.GroupAccessDeviceGetRequest18sp1(provider_id, group_id, device_name)
-            log.write(self.parse_response(resp0, level))
-            device_info = resp0['data']
-        elif provider_id and device_name:
-            log.write('{}ServiceProviderAccessDeviceGetRequest18sp1({}, {}) '.format('    '*(level+1), provider_id, device_name))
-            resp1 = self._bw.ServiceProviderAccessDeviceGetRequest18sp1(provider_id, device_name)
-            log.write(self.parse_response(resp1, level))
-            device_info = resp1['data']
-        else:
-            log.write('{}Could not determine device type for {}:{}:{}, not enough data\n'.format('    '*(level+1), provider_id, group_id, device_name))
-            summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, '', '', 'Could not retrieve device details'))
-            return {'log': log.getvalue(), 'summary': summary.getvalue()}
-
-        # New device info
-        device_name_2 = '{}_{}'.format(device_name, device_suffix)
-        device_username_2 = device_info['userName']
-        device_password_2 = '8675309'
-
-        # Build Configuration Files
-        redirect_file_contents = '<change device.set="1" device.dhcp.bootSrvUseOpt.set="1" device.dhcp.bootSrvUseOpt="Static" device.prov.user.set="1" device.prov.user="{username}" device.prov.password.set="1" device.prov.password="{password}" device.prov.serverType.set="1" device.prov.serverType="HTTP" device.prov.serverName.set="1" device.prov.serverName="bwdms.cspirefiber.com/dms/PolycomVVX" />'.format(username=device_username_2, password=device_password_2)
-        custom_redirect_file_base64 = base64.b64encode(redirect_file_contents.encode('utf-8')).decode('utf-8')
 
 
-        # Set existing device's primary line/port (if necessary)
-        if 'line_ports' in kwargs:
-            line_ports = kwargs['line_ports']
-        else:
-            log.write('{}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-            resp0 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name)
-            log.write(self.parse_response(resp0, level))
-            line_ports = sorted(resp0['data']['deviceUserTable'], key=lambda k: k['Order'])
-        if len(line_ports) > 0 and not BroadWorksDeviceMigration.has_primary_line_port(line_ports):
-            line_port = BroadWorksDeviceMigration.get_first_primary_line_port(line_ports)
-            if line_port is not None:
-                log.write('{}GroupAccessDeviceModifyUserRequest({}, {}, {}, {}, isPrimaryLinePort={}) '.format('    '*(level+1), provider_id, group_id, device_name, line_port['Line/Port'], True))
-                resp1 = self._bw.GroupAccessDeviceModifyUserRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name, linePort=line_port['Line/Port'], isPrimaryLinePort=True)
-                log.write(self.parse_response(resp1, level))
-
-        # Create new device
-        log.write('{}GroupAccessDeviceAddRequest14({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, device_type_2, device_username_2, device_password_2))
-        resp1 = self._bw.GroupAccessDeviceAddRequest14(provider_id, group_id, device_name_2, device_type_2, username=device_username_2, password=device_password_2)
-        log.write(self.parse_response(resp1, level))
-        if resp1['type'] == 'c:ErrorResponse':
-            # could not build device, ruh roh!
-            summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, device_type_2, device_name_2, 'ERROR: Could not add new device'))
-            return {'log': log.getvalue(), 'summary': summary.getvalue()}
-
-        # Move device tags to new device
-        log.write('{}GroupAccessDeviceCustomTagGetListRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-        resp2 = self._bw.GroupAccessDeviceCustomTagGetListRequest(provider_id, group_id, device_name)
-        log.write(self.parse_response(resp2, level))
-        device_tags = resp2['data']['deviceCustomTagsTable']
-        for tag in device_tags:
-            if tag['Tag Name'] not in ['%APP_VERSION%', '%APP_VERSION_VVX-400%', '%APP_VERSION_VVX-500%', '%APP_VERSION_VVX-600%']:
-                log.write('{}GroupAccessDeviceCustomTagAddRequest({}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value']))
-                resp3 = self._bw.GroupAccessDeviceCustomTagAddRequest(provider_id, group_id, device_name_2, tag['Tag Name'], tag['Tag Value'])
-                log.write(self.parse_response(resp3, level))
-
-        # Send existing device a new config file to redirect to the new device provisioning url + credentials
-        log.write('{}GroupAccessDeviceFileModifyRequest14sp8({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name, 'phone%BWDEVICEID%.cfg', 'Custom', '{...}'))
-        resp4 = self._bw.GroupAccessDeviceFileModifyRequest14sp8(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name, fileFormat='phone%BWDEVICEID%.cfg', fileSource='Custom', uploadFile={'fileContent': custom_redirect_file_base64})
-        log.write(self.parse_response(resp4, level))
-        log.write('{}GroupCPEConfigRebuildDeviceConfigFileRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-        resp5 = self._bw.GroupCPEConfigRebuildDeviceConfigFileRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name)
-        log.write(self.parse_response(resp5, level))
-        log.write('{}GroupAccessDeviceResetRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name))
-        resp6 = self._bw.GroupAccessDeviceResetRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name)
-        log.write(self.parse_response(resp6, level))
-
-        # Move line/ports from old to new device
-        for line_port in line_ports:
-            if line_port['Endpoint Type'] == 'Primary':
-                # Remove Primary Line/Port from previous device
-                log.write('{}UserModifyRequest17sp4({}, endpoint={}) '.format('    '*(level+1), line_port['User Id'], 'Nil()'))
-                resp7 = self._bw.UserModifyRequest17sp4(userId=line_port['User Id'], endpoint=Nil())
-                log.write(self.parse_response(resp7, level))
-                # Add Primary Line/Port to new device
-                access_device_endpoint = OrderedDict()
-                access_device_endpoint['accessDevice'] = OrderedDict()
-                access_device_endpoint['accessDevice']['deviceLevel'] = 'Group'
-                access_device_endpoint['accessDevice']['deviceName'] = device_name_2
-                access_device_endpoint['linePort'] = line_port['Line/Port']
-                log.write('{}UserModifyRequest17sp4({}, endpoint={}) '.format('    '*(level+1), line_port['User Id'], '{...}'))
-                resp8 = self._bw.UserModifyRequest17sp4(userId=line_port['User Id'], endpoint={'accessDeviceEndpoint': access_device_endpoint})
-                log.write(self.parse_response(resp8, level))
-            elif line_port['Endpoint Type'] == 'Shared Call Appearance':
-                # Remove SCA from previous device
-                access_device_endpoint = OrderedDict()
-                access_device_endpoint['accessDevice'] = OrderedDict()
-                access_device_endpoint['accessDevice']['deviceLevel'] = 'Group'
-                access_device_endpoint['accessDevice']['deviceName'] = device_name
-                access_device_endpoint['linePort'] = line_port['Line/Port']
-                log.write('{}UserSharedCallAppearanceDeleteEndpointListRequest14({}, {}) '.format('    '*(level+1), line_port['User Id'], '{...}'))
-                resp9 = self._bw.UserSharedCallAppearanceDeleteEndpointListRequest14(line_port['User Id'], access_device_endpoint)
-                log.write(self.parse_response(resp9, level))
-                # Add SCA to new device
-                access_device_endpoint = OrderedDict()
-                access_device_endpoint['accessDevice'] = OrderedDict()
-                access_device_endpoint['accessDevice']['deviceLevel'] = 'Group'
-                access_device_endpoint['accessDevice']['deviceName'] = device_name_2
-                access_device_endpoint['linePort'] = line_port['Line/Port']
-                log.write('{}UserSharedCallAppearanceAddEndpointRequest14sp2({}, {}, isActive=True, allowOrigination=True, allowTermination=True) '.format('    '*(level+1), line_port['User Id'], '{...}'))
-                resp10 = self._bw.UserSharedCallAppearanceAddEndpointRequest14sp2(line_port['User Id'], access_device_endpoint, isActive=True, allowOrigination=True, allowTermination=True)
-                log.write(self.parse_response(resp10, level))
-            else:
-                log.write('unknown line_port endpoint type :-(\n')
-
-        # Set new device's primary line/port (if necessary)
-        log.write('{}GroupAccessDeviceGetUserListRequest({}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2))
-        resp11 = self._bw.GroupAccessDeviceGetUserListRequest(provider_id, group_id, device_name_2)
-        log.write(self.parse_response(resp11, level))
-        line_ports = sorted(resp11['data']['deviceUserTable'], key=lambda k: k['Order'])
-        if len(line_ports) > 0 and not BroadWorksDeviceMigration.has_primary_line_port(line_ports):
-            line_port = BroadWorksDeviceMigration.get_first_primary_line_port(line_ports)
-            if line_port is not None:
-                log.write('{}GroupAccessDeviceModifyUserRequest({}, {}, {}, {}, isPrimaryLinePort=True) '.format('    '*(level+1), provider_id, group_id, device_name_2, line_port['Line/Port']))
-                resp11 = self._bw.GroupAccessDeviceModifyUserRequest(serviceProviderId=provider_id, groupId=group_id, deviceName=device_name_2, linePort=line_port['Line/Port'], isPrimaryLinePort=True)
-                log.write(self.parse_response(resp11, level))
-
-        # Success!
-        log.write('{}Migrated Device {}::{}::{} with UserAgent of {}\n'.format('    '*(level+1), provider_id, group_id, device_name, device_info['version']))
-        summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, device_type_2, device_name_2, "Success"))
-        return {'log': log.getvalue(), 'summary': summary.getvalue()}
-
-
-def filter_device_swap(process_id):
+def device_swap_ph2(process_id):
     process = Process.objects.get(id=process_id)
 
     # Summary Tab
@@ -349,7 +218,7 @@ def filter_device_swap(process_id):
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
 
-        ds = BroadWorkDeviceSwap(process=process)
+        ds = BroadWorkDeviceSwapPh2(process=process)
         content = ds.device_swap()["result"]
 
         # Initial content
