@@ -106,11 +106,11 @@ class BroadWorkDeviceSwapPh2:
                 log.write(self.parse_response(resp1, level))
 
         # Create new device
-        log.write('{}GroupAccessDeviceAddRequest14({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, device_type_2, device_mac_address_2, device_username_2, device_password_2))
-        resp1 = self._bw.GroupAccessDeviceAddRequest14(provider_id, group_id, device_name_2, device_type_2, device_mac_address_2, username=device_username_2, password=device_password_2)
+        log.write('{}GroupAccessDeviceAddRequest14({}, {}, {}, {}, {}, {}) '.format('    '*(level+1), provider_id, group_id, device_name_2, device_type_2, device_mac_address_2))
+        resp1 = self._bw.GroupAccessDeviceAddRequest14(provider_id, group_id, device_name_2, device_type_2, device_mac_address_2)
         log.write(self.parse_response(resp1, level))
         if resp1['type'] == 'c:ErrorResponse':
-            # could not build device, ruh roh!
+            # could not build device!
             summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, device_type_2, device_name_2, 'ERROR: Could not add new device'))
             return {'log': log.getvalue(), 'summary': summary.getvalue()}
 
