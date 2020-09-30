@@ -152,7 +152,7 @@ class BroadWorkDeviceSwapFilter:
                     matched_devices.append(device)
 
         for device in devices:
-            parsed_version = BroadWorkDeviceSwap.parse_version(device['Version'])
+            parsed_version = BroadWorkDeviceSwapFilter.parse_version(device['Version'])
             device['Device Type'] = parsed_version['device_type'] or device['Device Type']
             device['MAC Address'] = parsed_version['mac_address'] or device['MAC Address']
 

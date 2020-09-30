@@ -152,18 +152,18 @@ class ReadOnlyTextField(forms.TextInput):
 
 class DeviceSwapSubmitResultForm(forms.Form):
     selected = forms.BooleanField(initial=False, required=False)
-    provider_id = forms.IntegerField(label='Provider Id',
-                                     required=False, initial=1003,
-                                     widget=ReadOnlyTextField)
-    group_id = forms.IntegerField(label='Group Id', required=False,
-                                  widget=ReadOnlyTextField)
+    provider_id = forms.CharField(label='Provider Id',
+                                  widget=forms.TextInput(attrs={'readonly':'readonly'}),
+                                  required=False, initial=1003)
+    group_id = forms.CharField(label='Group Id', required=False,
+                               widget=forms.TextInput(attrs={'readonly':'readonly'}))
     device_type = forms.CharField(label='Device Type', required=True,
                                   widget=forms.TextInput(attrs={'required': 'true'}))
     mac_address = forms.CharField(label='MAC Address', max_length=17, required=False,
                                   widget=forms.TextInput())
     department = forms.CharField(label='Department', required=False,
                                  max_length=256, widget=forms.TextInput())
-    user_id = forms.CharField(label='User ID', required=True, max_length=256,)
+    user_id = forms.CharField(label='User ID', required=True, max_length=256, )
     line_port = forms.CharField(label='Line/Port', required=True, max_length=256)
 
     javascript = static('tools/device_swap_filter_result.js')
