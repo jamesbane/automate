@@ -81,12 +81,14 @@ class BroadWorkDeviceSwapPh2:
             device_types)
         )
         # Args from Ph1
-        
+        device_type = kwargs['device_type']
+        device_type_2 = kwargs['new_device_type']
+        device_mac_address_2 = kwargs['mac_address']        
 
         # new device info
+        device_suffix = Util.random_password(length=6, specials=False)
         device_name_2 = '{}_{}'.format(device_name, device_suffix)
-        device_type_2 = kwargs['new_device_type']
-        device_mac_address_2 = kwargs['mac_address']
+
         #device_username_2 = device_info['userName']
         #device_password_2 = Util.random_password(length=16, specials=False)
 
@@ -175,7 +177,7 @@ class BroadWorkDeviceSwapPh2:
                 log.write(self.parse_response(resp11, level))
 
         # Success!
-        log.write('{}Swapped Device {}::{}::{} with UserAgent of {}\n'.format('    '*(level+1), provider_id, group_id, device_name, device_info['version']))
+        log.write('{}Swapped Device {}::{}::{} to {}\n'.format('    '*(level+1), provider_id, group_id, device_name, device_type_2))
         summary.write('"{}","{}","{}","{}","{}","{}","{}"\n'.format(provider_id, group_id, device_type, device_name, device_type_2, device_name_2, "Success"))
         return {'log': log.getvalue(), 'summary': summary.getvalue()}
 
