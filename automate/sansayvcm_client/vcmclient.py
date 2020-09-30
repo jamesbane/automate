@@ -76,7 +76,6 @@ class VcmClient:
         body = buffer.getvalue()
         return status
 
-    #def send(self, cluster, desc, number):
     def send(self, cluster, action, cfg):
         self._action = action
         url = self._getVcmUrl(cluster)

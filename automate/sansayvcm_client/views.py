@@ -46,12 +46,12 @@ class SansayVcmRequestView(FormView):
 
 class VcmLogView(ListView):
     model = RouteTableLog
-    paginate_by = 100
+    paginate_by = 25
     javascript = static('sansayvcm_client/routetablelog_list.js')
 
 class VcmRouteQueueView(ListView):
     model = VcmRouteQueue
-    paginate_by = 50
+    paginate_by = 25
 
 
 class VcmRoutes(APIView):
@@ -75,8 +75,8 @@ class VcmRoutes(APIView):
         
         number = data['identifier']
         # normalize the number to 10 digit
-        if '+1' in number:
-            number = number.replace('+1', '')
+        #if '+1' in number:
+        #    number = number.replace('+1', '')
 
         alias = 'Cust ' + str(data['customer_id']) + ' ' + number
         

@@ -22,7 +22,7 @@ class Command(BaseCommand):
             vcm = VcmClient(client_id)
             archive = vcm.buildArchive(rows)
 
-            returnStatus = vcm.send('2', 'delete', archive)
+            returnStatus = vcm.send('2', 'update', archive)
 
             for routequeue in rows:
                 if returnStatus == 200:
