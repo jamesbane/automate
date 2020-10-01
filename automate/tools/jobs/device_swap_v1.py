@@ -216,7 +216,9 @@ class BroadWorkDeviceSwapFilter:
                                    "group_id": self._process.parameters['group_id'],
                                    "device_type": device_type, "mac_address": device_info["mac_address"],
                                    "department": user["Department"], "user_id": user["User Id"],
+                                   "device_name": device_info["device_name"],
                                    "line_port": user["Line/Port"]})
+        print(result)
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
     @staticmethod
