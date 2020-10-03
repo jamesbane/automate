@@ -29,7 +29,7 @@ class SansayCluster(models.Model):
 
 
 class RouteTableLog(models.Model):
-    cluster_id = models.CharField(max_length=32)
+    cluster = models.ForeignKey(SansayCluster, on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
     action = models.CharField(max_length=32)
     xmlcfg = models.TextField(null=True)
