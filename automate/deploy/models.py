@@ -22,7 +22,7 @@ class DeviceType(models.Model):
     category = models.PositiveSmallIntegerField(choices=CATEGORY_CHOICES)
     manufacturer = models.CharField(max_length=256)
     model = models.CharField(max_length=256)
-    skus = ArrayField(models.CharField(max_length=32), default=[], blank=True)
+    skus = ArrayField(models.CharField(max_length=32), default=dict, blank=True)
     serial_format = models.CharField(max_length=256, blank=True)
     switch_type = models.CharField(max_length=256, unique=True)
 
