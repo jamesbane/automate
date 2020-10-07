@@ -49,9 +49,8 @@ class ProcessListView(LoginRequiredMixin, ListView):
         context = super(ProcessListView, self).get_context_data(**kwargs)
         platform = BroadworksPlatform.objects.filter(customer__in=self.request.user.groups.all()).values_list('id',
                                                                                                               flat=True)
-        print(platform)
         plat = [i for i in platform]
-        data = self.model.objects.filter(platform_type__in=plat, user=self.request.user)
+        data = self.model.objects.filter(platform_id_id__in=plat, user=self.request.user)
         context['object_list'] = data
         return context
 
@@ -254,8 +253,6 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
             return self.form_invalid(formset, formset)
         phase_two_input = self._get_phase_2_input_data(formset)
 
-        print("phase_two_input = ", phase_two_input)
-
         filter_platform_id = self.request.session.get('filter_platform_id')
         filter_platform = BroadworksPlatform.objects.get(pk=filter_platform_id)
         parameters = {
@@ -264,7 +261,6 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
             'provider_id': self.request.session.get('filter_provider_id'),
             'group_id': self.request.session.get('filter_group_id')
         }
-        print("parameters = ", parameters)
         self.object = Process.objects.create(user=self.request.user,
                                              method=self.process_name,
                                              platform_type=Process.PLATFORM_BROADWORKS,
@@ -279,7 +275,18 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
         process_function = eval(self.process_function)
         filter_results = process_function(self.object.pk)
 
-        return HttpResponse(filter_results)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        """
+        Returns the supplied success URL.
+        """
+        if self.success_url:
+            # Forcing possible reverse_lazy evaluation
+            url = force_text(self.success_url)
+        else:
+            url = reverse('tools:jobs')
+        return url
 
     def _get_phase_2_input_data(self, formset):
         data = []

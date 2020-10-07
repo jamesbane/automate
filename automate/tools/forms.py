@@ -97,16 +97,18 @@ class TrunkUserAuditForm(BroadworksPlatformForm):
 class SpeedDialLineForm(forms.Form):
     code = forms.CharField(max_length=2,
                            validators=[
-                                RegexValidator(r'^\d{2}$', 'Enter a valid speed dial code.'),
+                               RegexValidator(r'^\d{2}$', 'Enter a valid speed dial code.'),
                            ],
                            widget=forms.TextInput(attrs={'placeholder': 'Code', 'class': 'col-lg-1'}))
     description = forms.CharField(max_length=64,
                                   widget=forms.TextInput(attrs={'placeholder': 'Description', 'class': 'col-lg-4'}))
     destination_number = forms.CharField(max_length=64,
                                          validators=[
-                                            RegexValidator(r'^\d{4,}$', 'Enter a valid speed dial destination number.'),
+                                             RegexValidator(r'^\d{4,}$',
+                                                            'Enter a valid speed dial destination number.'),
                                          ],
-                                         widget=forms.TextInput(attrs={'placeholder': 'Destination Number', 'class': 'col-lg-6'}))
+                                         widget=forms.TextInput(
+                                             attrs={'placeholder': 'Destination Number', 'class': 'col-lg-6'}))
 
 
 class DeviceForm(BroadworksPlatformForm):
@@ -116,10 +118,14 @@ class DeviceForm(BroadworksPlatformForm):
 
 
 class DectLineForm(forms.Form):
-    handset = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'placeholder': 'Handset', 'class': 'col-lg-1'}))
-    line = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'placeholder': 'Line', 'class': 'col-lg-1'}))
-    user_id = forms.CharField(max_length=64, required=True, widget=forms.TextInput(attrs={'placeholder': 'User Id', 'class': 'col-lg-5'}))
-    lineport = forms.CharField(max_length=128, required=False, widget=forms.TextInput(attrs={'placeholder': 'Line Port', 'class': 'col-lg-4', 'disabled': True}))
+    handset = forms.IntegerField(required=True,
+                                 widget=forms.NumberInput(attrs={'placeholder': 'Handset', 'class': 'col-lg-1'}))
+    line = forms.IntegerField(required=True,
+                              widget=forms.NumberInput(attrs={'placeholder': 'Line', 'class': 'col-lg-1'}))
+    user_id = forms.CharField(max_length=64, required=True,
+                              widget=forms.TextInput(attrs={'placeholder': 'User Id', 'class': 'col-lg-5'}))
+    lineport = forms.CharField(max_length=128, required=False, widget=forms.TextInput(
+        attrs={'placeholder': 'Line Port', 'class': 'col-lg-4', 'disabled': True}))
 
 
 class BusyLampFieldFixupForm(ProviderGroupForm):
@@ -134,7 +140,8 @@ class DeviceSwapFilterForm(ProviderGroupForm):
     provider_id = forms.CharField(label='Provider Id', required=True)
     group_id = forms.CharField(label='Group Id', required=True)
     DEVICE_TYPE_CHOICES = tuple((dt.switch_type, dt.switch_type) for dt in DeviceType.objects.all())
-    input_device_types = forms.MultipleChoiceField(label='Filter by Platform Device Type', choices=DEVICE_TYPE_CHOICES, required=False)
+    input_device_types = forms.MultipleChoiceField(label='Filter by Platform Device Type', choices=DEVICE_TYPE_CHOICES,
+                                                   required=False)
     department = forms.CharField(label='Department', required=False, max_length=256)
 
 
@@ -142,21 +149,21 @@ DeviceSwapFilterFormSet = formset_factory(DeviceSwapFilterForm)
 
 
 class ReadOnlyTextField(forms.TextInput):
-  input_type = 'text'
+    input_type = 'text'
 
-  def render(self, name, value, attrs=None, renderer=None):
-     if value is None:
-         value = ''
-     return value
+    def render(self, name, value, attrs=None, renderer=None):
+        if value is None:
+            value = ''
+        return value
 
 
 class DeviceSwapSubmitResultForm(forms.Form):
     selected = forms.BooleanField(initial=False, required=False)
     provider_id = forms.CharField(label='Provider Id',
-                                  widget=forms.TextInput(attrs={'readonly':'readonly'}),
+                                  widget=forms.TextInput(attrs={'readonly': 'readonly'}),
                                   required=False, initial=1003)
     group_id = forms.CharField(label='Group Id', required=False,
-                               widget=forms.TextInput(attrs={'readonly':'readonly'}))
+                               widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     device_type = forms.CharField(label='Device Type', required=True,
                                   widget=forms.TextInput(attrs={'required': 'true'}))
     device_name = forms.CharField(widget=forms.HiddenInput())
