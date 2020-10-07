@@ -206,6 +206,9 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         filter_results = process_function(self.object.pk)
 
         self.request.session['filter_results'] = filter_results
+        self.request.session['filter_platform_id'] = platform.pk
+        self.request.session['filter_provider_id'] = parameters['provider_id']
+        self.request.session['filter_group_id'] = parameters['group_id']
 
         # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
         #                                       port=settings.RQ_QUEUES['tool']['PORT'],
@@ -230,7 +233,7 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
     permission_required = 'tools.process_device_swap_exec'
     permission_view = 'tools.process_device_swap_view'
     process_name = 'Device Swap'
-    process_function = 'tools.jobs.device_swap_v1'
+    process_function = 'tools.jobs.device_swap_v2.device_swap_ph2'
     template_name = 'tools/device_swap_filter_result.html'
     form_class = tools.forms.DeviceSwapSubmitResultForm
     formset_class = tools.forms.DeviceSwapSubmitResultForm
@@ -250,12 +253,33 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
         if not formset.is_valid() or not device_type_form.is_valid():
             return self.form_invalid(formset, formset)
         phase_two_input = self._get_phase_2_input_data(formset)
-        phase_two_input.append(
-            {'new_device_type': str(
-                device_type_form.cleaned_data['new_device_type']
-            )}
-        )
-        return HttpResponse(phase_two_input)
+
+        print("phase_two_input = ", phase_two_input)
+
+        filter_platform_id = self.request.session.get('filter_platform_id')
+        filter_platform = BroadworksPlatform.objects.get(pk=filter_platform_id)
+        parameters = {
+            'devices_info': phase_two_input,
+            'new_device_type': str(device_type_form.cleaned_data['new_device_type']),
+            'provider_id': self.request.session.get('filter_provider_id'),
+            'group_id': self.request.session.get('filter_group_id')
+        }
+        print("parameters = ", parameters)
+        self.object = Process.objects.create(user=self.request.user,
+                                             method=self.process_name,
+                                             platform_type=Process.PLATFORM_BROADWORKS,
+                                             platform_id=filter_platform,
+                                             parameters=parameters,
+                                             start_timestamp=timezone.now(),
+                                             end_timestamp=None,
+                                             view_permission=self.permission_view)
+        module = '.'.join(self.process_function.split('.')[:-1])
+        method = self.process_function.split('.')[-1]
+        importlib.import_module(module)
+        process_function = eval(self.process_function)
+        filter_results = process_function(self.object.pk)
+
+        return HttpResponse(filter_results)
 
     def _get_phase_2_input_data(self, formset):
         data = []

@@ -76,7 +76,7 @@ class BroadWorkDeviceSwapPh2:
         provider_id = self._process.parameters['provider_id']
         group_id = self._process.parameters['group_id']
         devices_info = self._process.parameters.get("devices_info", [])
-        new_device_type = kwargs["new_device_type"]
+        new_device_type = self._process.parameters.get("new_device_type", [])
         log.write("{}Device Swap {}::{}::{}::{}\n".format(
             '    ' * level, provider_id, group_id, devices_info, new_device_type))
 
@@ -254,7 +254,9 @@ def device_swap_ph2(process_id):
         process.save(update_fields=['status'])
 
         ds = BroadWorkDeviceSwapPh2(process=process)
-        content = ds.device_swap()["result"]
+        content = ds.device_swap()["summary"]
+
+        print("content = ", content)
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
@@ -277,7 +279,9 @@ def device_swap_ph2(process_id):
         # process.save(update_fields=['status', 'end_timestamp'])
         process.save(update_fields=['status'])
         # ds.logout()
-    except Exception:
+    except Exception as e:
+        print("Exception")
+        print(e)
         process.status = process.STATUS_ERROR
         process.end_timestamp = timezone.now()
         process.exception = traceback.format_exc()

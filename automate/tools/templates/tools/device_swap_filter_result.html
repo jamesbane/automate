@@ -38,17 +38,18 @@
                 {% for form in formset %}
                 <div class="row form-row">
                     <tr>
-                        {% for field in form %}
-                        <td>{{ field}}</td>
-                        {% endfor %}
-                        <!--                <td>{{form.selected}}</td>-->
-                        <!--                <td style="width: 100px">{{form.provider_id}}</td>-->
-                        <!--                <td>{% render_field form.group_id %}</td>-->
-                        <!--                <td>{{form.device_type}}</td>-->
-                        <!--                <td>{{form.mac_address}}</td>-->
-                        <!--                <td>{{form.department}}</td>-->
-                        <!--                <td>{{form.user_id}}</td>-->
-                        <!--                <td>{{form.line_port}}</td>-->
+{#                        {% for field in form %}#}
+{#                        <td>{{ field}}</td>#}
+{#                        {% endfor %}#}
+                        {{ form.device_name }}
+                        <td>{{form.selected}}</td>
+                        <td style="width: 100px">{{form.provider_id}}</td>
+                        <td>{% render_field form.group_id %}</td>
+                        <td>{{form.device_type}}</td>
+                        <td>{{form.mac_address}}</td>
+                        <td>{{form.department}}</td>
+                        <td>{{form.user_id}}</td>
+                        <td>{{form.line_port}}</td>
                     </tr>
                 </div>
                 {% endfor %}

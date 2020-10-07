@@ -159,6 +159,7 @@ class DeviceSwapSubmitResultForm(forms.Form):
                                widget=forms.TextInput(attrs={'readonly':'readonly'}))
     device_type = forms.CharField(label='Device Type', required=True,
                                   widget=forms.TextInput(attrs={'required': 'true'}))
+    device_name = forms.CharField(widget=forms.HiddenInput())
     mac_address = forms.CharField(label='MAC Address', max_length=17, required=False,
                                   widget=forms.TextInput())
     department = forms.CharField(label='Department', required=False,
