@@ -208,6 +208,8 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         self.request.session['filter_platform_id'] = platform.pk
         self.request.session['filter_provider_id'] = parameters['provider_id']
         self.request.session['filter_group_id'] = parameters['group_id']
+        self.request.session['filter_object_pk'] = self.object.pk
+        print("filter object pk = ", self.object.pk)
 
         # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
         #                                       port=settings.RQ_QUEUES['tool']['PORT'],
@@ -253,27 +255,19 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
             return self.form_invalid(formset, formset)
         phase_two_input = self._get_phase_2_input_data(formset)
 
-        filter_platform_id = self.request.session.get('filter_platform_id')
-        filter_platform = BroadworksPlatform.objects.get(pk=filter_platform_id)
         parameters = {
             'devices_info': phase_two_input,
             'new_device_type': str(device_type_form.cleaned_data['new_device_type']),
             'provider_id': self.request.session.get('filter_provider_id'),
             'group_id': self.request.session.get('filter_group_id')
         }
-        self.object = Process.objects.create(user=self.request.user,
-                                             method=self.process_name,
-                                             platform_type=Process.PLATFORM_BROADWORKS,
-                                             platform_id=filter_platform,
-                                             parameters=parameters,
-                                             start_timestamp=timezone.now(),
-                                             end_timestamp=None,
-                                             view_permission=self.permission_view)
         module = '.'.join(self.process_function.split('.')[:-1])
+        process = Process.objects.get(pk=self.request.session.get('filter_object_pk'))
+        process.parameters = parameters
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)
-        filter_results = process_function(self.object.pk)
+        filter_results = process_function(process.pk)
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -285,7 +279,7 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
             # Forcing possible reverse_lazy evaluation
             url = force_text(self.success_url)
         else:
-            url = reverse('tools:jobs')
+            url = reverse('tools:process-list')
         return url
 
     def _get_phase_2_input_data(self, formset):

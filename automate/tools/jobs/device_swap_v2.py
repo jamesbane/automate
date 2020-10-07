@@ -254,9 +254,8 @@ def device_swap_ph2(process_id):
         process.save(update_fields=['status'])
 
         ds = BroadWorkDeviceSwapPh2(process=process)
-        content = ds.device_swap()["summary"]
-
-        print("content = ", content)
+        content = ds.device_swap()
+        content = content["summary"]
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
@@ -274,10 +273,9 @@ def device_swap_ph2(process_id):
         summary_html.write('</tbody>\n')
         summary_html.write('</table>\n')
         # save data
-        process.status = process.STATUS_RUNNING
-        # process.end_timestamp = timezone.now()
-        # process.save(update_fields=['status', 'end_timestamp'])
-        process.save(update_fields=['status'])
+        process.status = process.STATUS_COMPLETED
+        process.end_timestamp = timezone.now()
+        process.save(update_fields=['status', 'end_timestamp'])
         # ds.logout()
     except Exception as e:
         print("Exception")
