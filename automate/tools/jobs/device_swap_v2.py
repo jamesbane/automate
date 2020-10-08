@@ -255,7 +255,6 @@ def device_swap_ph2(process_id):
 
         ds = BroadWorkDeviceSwapPh2(process=process)
         content = ds.device_swap()
-        content = content["summary"]
 
         # Initial content
         summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
@@ -269,6 +268,15 @@ def device_swap_ph2(process_id):
             '"Provider Id","Group Id","Device A Type","Device A Id","Device B Type","Device B Id","Status"\n')
 
         # after things are finished
+        data = content['summary'].split(',')
+        if len(data) == 7:
+            summary_html.write('<tr>\n')
+            summary_html.write(
+                '\t<td>' + data[0] + '</td><td>' + data[1] + '</td><td>' + data[2] + '</td><td>' + data[
+                    3] + '</td><td>' + data[4] + '</td><td>' + data[5] + '</td><td>' + data[6] + '</td>\n')
+            summary_html.write('</tr>\n')
+        summary_raw.write(content['summary'])
+        log_raw.write(content['log'])
         # end html
         summary_html.write('</tbody>\n')
         summary_html.write('</table>\n')

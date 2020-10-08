@@ -263,31 +263,6 @@ class BroadWorkDeviceSwapFilter:
 def filter_device_swap(process_id):
     process = Process.objects.get(id=process_id)
 
-    # Summary Tab
-    summary_content = ProcessContent.objects.create(process=process, tab='Summary', priority=1)
-    dir_path = os.path.join(settings.PROTECTED_ROOT, 'process')
-    filename_html = '{}_{}'.format(process.id, 'summary.html')
-    pathname_html = os.path.join(dir_path, filename_html)
-    filename_raw = '{}_{}'.format(process.id, 'summary.csv')
-    pathname_raw = os.path.join(dir_path, filename_raw)
-    if not os.path.isdir(dir_path):
-        os.makedirs(dir_path)
-    summary_html = open(pathname_html, "w")
-    summary_content.html.name = os.path.join('process', filename_html)
-    summary_raw = open(pathname_raw, "w")
-    summary_content.raw.name = os.path.join('process', filename_raw)
-    summary_content.save()
-
-    # Log Tab
-    log_content = ProcessContent.objects.create(process=process, tab='Log', priority=2)
-    dir_path = os.path.join(settings.PROTECTED_ROOT, 'process')
-    filename_raw = '{}_{}'.format(process.id, 'log.txt')
-    pathname_raw = os.path.join(dir_path, filename_raw)
-    if not os.path.isdir(dir_path):
-        os.makedirs(dir_path)
-    log_raw = open(pathname_raw, "w")
-    log_content.raw.name = os.path.join('process', filename_raw)
-    log_content.save()
 
     content = []
 
@@ -298,24 +273,6 @@ def filter_device_swap(process_id):
 
         ds = BroadWorkDeviceSwapFilter(process=process)
         content = ds.device_swap_filter()["result"]
-
-        # Initial content
-        summary_html.write('<table class="table table-striped table-bordered table-hover">\n')
-        summary_html.write('<tr>\n')
-        summary_html.write(
-            '\t<th>Provider Id</th><th>Group Id</th><th>Device A Type</th><th>Device A Id</th><th>Device B Type'
-            '</th><th>Device B Id</th><th>Status</th>\n')
-        summary_html.write('</tr>\n')
-        summary_html.write('<tbody>\n')
-        summary_raw.write(
-            '"Provider Id","Group Id","Device A Type","Device A Id","Device B Type","Device B Id","Status"\n')
-
-        # here will be updated due to new logic.
-
-        # after things are finished
-        # end html
-        summary_html.write('</tbody>\n')
-        summary_html.write('</table>\n')
         # save data
         process.status = process.STATUS_RUNNING
         # process.end_timestamp = timezone.now()
@@ -327,10 +284,5 @@ def filter_device_swap(process_id):
         process.end_timestamp = timezone.now()
         process.exception = traceback.format_exc()
         process.save(update_fields=['status', 'exception', 'end_timestamp'])
-
-    # Cleanup
-    log_raw.close()
-    summary_raw.close()
-    summary_html.close()
 
     return content
