@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = True
+DEBUG = False
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -111,7 +111,6 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = 'automate.wsgi.application'
 
 # =====================================
 # Authentication
@@ -306,6 +305,8 @@ SERVER_EMAIL = env['email']['from_address']
 ADMINS = env['admins']
 MANAGERS = ADMINS'''
 
+ASGI_APPLICATION = 'automate.routing.application'
+
 CHANNEL_LAYERS = {
     "default": {
         # This example app uses the Redis channel layer implementation channels_redis
@@ -315,4 +316,4 @@ CHANNEL_LAYERS = {
         },
     },
 }
-ASGI_APPLICATION = 'tools.routing.application'
+WSGI_APPLICATION = 'automate.wsgi.application'
