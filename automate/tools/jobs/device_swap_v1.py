@@ -9,6 +9,8 @@ from collections import OrderedDict
 from copy import deepcopy
 
 # Django
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils import timezone
 
@@ -218,7 +220,6 @@ class BroadWorkDeviceSwapFilter:
                                    "department": user["Department"], "user_id": user["User Id"],
                                    "device_name": device_info["device_name"],
                                    "line_port": user["Line/Port"]})
-        print(result)
         return {'log': log.getvalue(), 'summary': summary.getvalue(), "result": result}
 
     @staticmethod
@@ -260,7 +261,7 @@ class BroadWorkDeviceSwapFilter:
     #     return result
 
 
-def filter_device_swap(process_id):
+def filter_device_swap(process_id, user_id):
     process = Process.objects.get(id=process_id)
 
 
@@ -270,6 +271,18 @@ def filter_device_swap(process_id):
         print("Process {}: {} -> {}".format(process_id, process.method, process.parameters))
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
+        layer = get_channel_layer()
+        async_to_sync(layer.group_send)(
+            "room-device_filter_swap_"+str(user_id),
+            {
+                "type": "chat.message",
+                "room_id": "device_filter_swap_"+str(user_id),
+                "message": {
+                    'process_id': process.pk,
+                    'process_status': process.status_name()
+                },
+            }
+        )
 
         ds = BroadWorkDeviceSwapFilter(process=process)
         content = ds.device_swap_filter()["result"]

@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = False
+DEBUG = True
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -78,7 +78,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
     'widget_tweaks',
-    'django_extensions'
+    'django_extensions',
+    'channels'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -304,3 +305,14 @@ SERVER_EMAIL = env['email']['from_address']
 # =====================================
 ADMINS = env['admins']
 MANAGERS = ADMINS'''
+
+CHANNEL_LAYERS = {
+    "default": {
+        # This example app uses the Redis channel layer implementation channels_redis
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+ASGI_APPLICATION = 'tools.routing.application'

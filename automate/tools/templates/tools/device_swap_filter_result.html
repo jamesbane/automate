@@ -3,81 +3,134 @@
 
 
 {% block tool_content %}
-<div class="card-header justify-content-between">
-    <h2>Device Swap Filter Result</h2>
-</div>
-<div class="card-body">
-    <h4>Summary of actions:</h4>
-    <pre>
+    <div class="card-header justify-content-between">
+        <h2>Device Swap Filter Result</h2>
+    </div>
+    <div class="card-body">
+        <h4>Summary of actions:</h4>
+        <pre>
         Choose items and press Run.
     </pre>
-    <form class="formset" method="POST">
-        {% csrf_token %}
-        {{ formset.management_form }}
-        <table class="table" id="swap-filter-result-table">
-            <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAll"/></th>
-                <th>Provider ID</th>
-                <th>Group ID</th>
-                <th>Input Device Type</th>
-                <th>MAC Address</th>
-                <th>Department</th>
-                <th>User ID</th>
-                <th>Line/Port</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!--            {{ form.non_field_errors }}-->
-            <!--            {% for dict in form.errors %}-->
-            <!--            {% for error in dict.values %}-->
-            <!--            {{ error }}-->
-            <!--            {% endfor %}-->
-            <!--            {% endfor %}-->
-            <div class="formset-rows">
-                {% for form in formset %}
-                <div class="row form-row">
-                    <tr>
-{#                        {% for field in form %}#}
-{#                        <td>{{ field}}</td>#}
-{#                        {% endfor %}#}
-                        {{ form.device_name }}
-                        <td>{{form.selected}}</td>
-                        <td style="width: 100px">{{form.provider_id}}</td>
-                        <td>{% render_field form.group_id %}</td>
-                        <td>{{form.device_type}}</td>
-                        <td>{{form.mac_address}}</td>
-                        <td>{{form.department}}</td>
-                        <td>{{form.user_id}}</td>
-                        <td>{{form.line_port}}</td>
-                    </tr>
+        <form class="formset" method="POST" id="filter-form">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            <table class="table" id="swap-filter-result-table">
+                <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll"/></th>
+                    <th>Provider ID</th>
+                    <th>Group ID</th>
+                    <th>Input Device Type</th>
+                    <th>MAC Address</th>
+                    <th>Department</th>
+                    <th>User ID</th>
+                    <th>Line/Port</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!--            {{ form.non_field_errors }}-->
+                <!--            {% for dict in form.errors %}-->
+                    <!--            {% for error in dict.values %}-->
+                        <!--            {{ error }}-->
+                        <!--            {% endfor %}-->
+                    <!--            {% endfor %}-->
+                <div class="formset-rows">
+                    {% for form in formset %}
+                        <div class="row form-row">
+                            <tr>
+                                {#                        {% for field in form %}#}
+                                {#                        <td>{{ field}}</td>#}
+                                {#                        {% endfor %}#}
+                                {{ form.device_name }}
+                                <td>{{ form.selected }}</td>
+                                <td style="width: 100px">{{ form.provider_id }}</td>
+                                <td>{% render_field form.group_id %}</td>
+                                <td>{{ form.device_type }}</td>
+                                <td>{{ form.mac_address }}</td>
+                                <td>{{ form.department }}</td>
+                                <td>{{ form.user_id }}</td>
+                                <td>{{ form.line_port }}</td>
+                            </tr>
+                        </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                </tbody>
+            </table>
+
+            {{ device_type_form.as_p }}
+
+            <h3 class="text-danger"><i class="ik ik-alert-triangle"></i></h3>
+            <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
+            <div class="well">
+                <p><label></label><input id="submit" type="submit" value="Run"/></p>
             </div>
-            </tbody>
-        </table>
+        </form>
 
-        {{device_type_form.as_p}}
-
-        <h3 class="text-danger"><i class="ik ik-alert-triangle"></i></h3>
-        <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
-        <div class="well">
-            <p><label></label><input id="submit" type="submit" value="Run"/></p>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Filtering Devices</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Process ID: <span id="process_id"></span></p>
+                        <p>Process Status: <span id="process_status"></span></p>
+                        <p>Please wait</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </form>
-</div>
-<script>
-    $("form").each(function () {
-        $(this).find(':input').each(function (index, element) {
-            if ($(element).attr("type") == "number") {
-                $(element).css('width', '80px');
-            }
-        })
-    });
-    $(document).ready(function () {
-        $("#selectAll").click(function () {
-            $('input:checkbox').not(this).prop('checked', this.checked);
-        });
-    });
-</script>
+    </div>
 {% endblock tool_content %}
+
+{% block javascript %}
+    {{ block.super }}
+    {% if form.javascript %}
+        <script src="{{ form.javascript }}"></script>
+    {% endif %}
+    <script>
+        $("form").each(function () {
+            $(this).find(':input').each(function (index, element) {
+                if ($(element).attr("type") == "number") {
+                    $(element).css('width', '80px');
+                }
+            })
+        });
+        $(document).ready(function () {
+            $("#selectAll").click(function () {
+                $('input:checkbox').not(this).prop('checked', this.checked);
+            });
+        });
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var ws_path = ws_scheme + '://' + window.location.host + "/device_swap/stream/";
+        var socket = new ReconnectingWebSocket(ws_path);
+
+        socket.onmessage = function (message) {
+            console.log("Got websocket message " + message.data);
+            let data = JSON.parse(message.data);
+            if (data.room == "device_swap_v2_" + {{ request.user.id }}) {
+                let process_id = data['message']['process_id'];
+                let process_status = data['message']['process_status'];
+                $("#process_id").html(process_id);
+                $("#process_status").html(process_status);
+            }
+        }
+
+        socket.onopen = function () {
+            console.log("Connected to chat socket");
+
+            socket.send(JSON.stringify({
+                "command": "join",
+                "room": "device_swap_v2_" + {{ request.user.id }}
+            }));
+        };
+        socket.onclose = function () {
+            console.log("Disconnected from chat socket");
+        }
+
+        $("#filter-form").submit(function () {
+            $("#exampleModal").modal('show');
+        })
+    </script>
+{% endblock javascript %}

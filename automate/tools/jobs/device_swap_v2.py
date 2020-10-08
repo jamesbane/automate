@@ -8,6 +8,8 @@ from collections import OrderedDict
 from copy import deepcopy
 
 # Django
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils import timezone
 
@@ -217,7 +219,7 @@ class BroadWorkDeviceSwapPh2:
         return {'log': log.getvalue(), 'summary': summary.getvalue()}
 
 
-def device_swap_ph2(process_id):
+def device_swap_ph2(process_id, user_id):
     process = Process.objects.get(id=process_id)
 
     # Summary Tab
@@ -290,6 +292,19 @@ def device_swap_ph2(process_id):
         process.status = process.STATUS_COMPLETED
         process.end_timestamp = timezone.now()
         process.save(update_fields=['status', 'end_timestamp'])
+
+        layer = get_channel_layer()
+        async_to_sync(layer.group_send)(
+            "room-device_swap_v2_"+str(user_id),
+            {
+                "type": "chat.message",
+                "room_id": "device_swap_v2_"+str(user_id),
+                "message": {
+                    'process_id': process.pk,
+                    'process_status': process.status_name()
+                },
+            }
+        )
         # ds.logout()
     except Exception as e:
         print("Exception")
