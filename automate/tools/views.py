@@ -205,9 +205,6 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         filter_results = process_function(self.object.pk)
 
         self.request.session['filter_results'] = filter_results
-        self.request.session['filter_platform_id'] = platform.pk
-        self.request.session['filter_provider_id'] = parameters['provider_id']
-        self.request.session['filter_group_id'] = parameters['group_id']
         self.request.session['filter_object_pk'] = self.object.pk
         print("filter object pk = ", self.object.pk)
 
@@ -255,15 +252,11 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
             return self.form_invalid(formset, formset)
         phase_two_input = self._get_phase_2_input_data(formset)
 
-        parameters = {
-            'devices_info': phase_two_input,
-            'new_device_type': str(device_type_form.cleaned_data['new_device_type']),
-            'provider_id': self.request.session.get('filter_provider_id'),
-            'group_id': self.request.session.get('filter_group_id')
-        }
         module = '.'.join(self.process_function.split('.')[:-1])
         process = Process.objects.get(pk=self.request.session.get('filter_object_pk'))
-        process.parameters = parameters
+        process.parameters['devices_info'] = phase_two_input
+        process.parameters['new_device_type'] = str(device_type_form.cleaned_data['new_device_type'])
+        process.save()
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)

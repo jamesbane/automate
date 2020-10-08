@@ -221,7 +221,10 @@ def device_swap_ph2(process_id):
     process = Process.objects.get(id=process_id)
 
     # Summary Tab
-    summary_content = ProcessContent.objects.create(process=process, tab='Summary', priority=1)
+    try:
+        summary_content = ProcessContent.objects.get(process=process, tab='Summary', priority=1)
+    except:
+        summary_content = ProcessContent.objects.create(process=process, tab='Summary', priority=1)
     dir_path = os.path.join(settings.PROTECTED_ROOT, 'process')
     filename_html = '{}_{}'.format(process.id, 'summary.html')
     pathname_html = os.path.join(dir_path, filename_html)
@@ -236,7 +239,10 @@ def device_swap_ph2(process_id):
     summary_content.save()
 
     # Log Tab
-    log_content = ProcessContent.objects.create(process=process, tab='Log', priority=2)
+    try:
+        log_content = ProcessContent.objects.get(process=process, tab='Log', priority=2)
+    except:
+        log_content = ProcessContent.objects.create(process=process, tab='Log', priority=2)
     dir_path = os.path.join(settings.PROTECTED_ROOT, 'process')
     filename_raw = '{}_{}'.format(process.id, 'log.txt')
     pathname_raw = os.path.join(dir_path, filename_raw)
