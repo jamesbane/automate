@@ -6,10 +6,15 @@
     Routing Logs
 </a>
 
-{% url 'sansayvcm_client:sansay-vcm-request' as the_url %}
+{% url 'sansayvcm_client:route-queue' as the_url %}
+<a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
+    Route Queue
+</a>
+
+<!-- {% url 'sansayvcm_client:sansay-vcm-request' as the_url %}
 <a class="menu-item {% if request.get_full_path == the_url %} active {% endif %}" href="{{ the_url }}">
     Test Sansay Request
-</a>
+</a> -->
 {% endblock sansayvcm_items %}
 
 {% block content %}

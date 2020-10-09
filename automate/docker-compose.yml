@@ -13,7 +13,8 @@ services:
       - redis
   worker-tool:
     build: .
-    command: /usr/local/bin/python -O /src/manage.py rqworker tool --pythonpath=/src
+    #command: /usr/local/bin/python -O /src/manage.py rqworker tool --pythonpath=/src
+    command: /usr/bin/python3 -O /src/manage.py rqworker tool --pythonpath=/src
     volumes:
       - ./media:/src/media
       - ./protected:/src/protected
@@ -22,7 +23,8 @@ services:
       - redis
   worker-deploy:
     build: .
-    command: /usr/local/bin/python -O /src/manage.py rqworker deploy --pythonpath=/src
+    #command: /usr/local/bin/python -O /src/manage.py rqworker deploy --pythonpath=/src
+    command: /usr/bin/python3 -O /src/manage.py rqworker deploy --pythonpath=/src
     volumes:
       - ./media:/src/media
       - ./protected:/src/protected

@@ -3,28 +3,28 @@
 {% block tool_content %}
 
 <div class="card">
-    <div class="card-header">VCM Request Logs</div>
+    <div class="card-header">VCM Route Queue</div>
     <div class="card-body">
         <table class="table">
             <thead>
                 <tr>
                     <th>Number</th>
-                    <th>Cluster</th>
-                    <th>Type</th>
-                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Operation</th>
+                    <th>Queue Status</th>
                     <th>Transaction Date</th>
-                    <th>Actions</th>
+		            <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for object in object_list %}
                 <tr>
                     <td>{{object.number}}</td>
-                    <td>{{object.cluster}}</td>
+                    <td>{{object.alias}}</td>
                     <td>{{object.action}}</td>
-                    <td>{{object.result_status}}</td>
-                    <td>{{object.created}}</td>
-                    <td>
+                    <td>{{object.get_status}}</td>
+                    <td>{{object.create_date}}</td>
+		            <td>
                         <div class="row">
                             <div class="col">
                                 <a href="#" title="View XML Config" data-toggle="modal" data-target="#xml-{{object.id}}"><i class="far fa-file-excel fa-2x"></i></a>
@@ -43,6 +43,16 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col">
+                                <a href="#" title="Process Single Request"><i class="fas fa-cogs fa-2x"></i></a>
+                            </div>
+                            <div class="col">
+                                {% if object.status == 'error' %}
+                                <a href="#" title="View Errors">
+                                    <span style="color: red;"><i class="fas fa-exclamation-circle fa-2x"></i></span>
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
 		            </td>
@@ -72,4 +82,3 @@
 </div>
 
 {% endblock tool_content %}
-

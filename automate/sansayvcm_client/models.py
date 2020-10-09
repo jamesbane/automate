@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 
 class SansayVcmServer(models.Model):
@@ -5,6 +6,7 @@ class SansayVcmServer(models.Model):
     uri = models.CharField(max_length=1021)
     username = models.CharField(max_length=256)
     password = models.CharField(max_length=256)
+    client_id = models.IntegerField()
     
     class Meta:
         ordering = ('name',)
@@ -27,7 +29,7 @@ class SansayCluster(models.Model):
 
 
 class RouteTableLog(models.Model):
-    cluster_id = models.CharField(max_length=32)
+    cluster = models.ForeignKey(SansayCluster, on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
     action = models.CharField(max_length=32)
     xmlcfg = models.TextField(null=True)
@@ -38,3 +40,17 @@ class RouteTableLog(models.Model):
     class Meta:
         ordering = ('-created',)
 
+class VcmRouteQueue(models.Model):
+    uuid = models.IntegerField()
+    number = models.CharField(max_length=64)
+    alias = models.CharField(max_length=64)
+    action = models.CharField(max_length=32)
+    create_date = models.DateTimeField(null=False, default=datetime.now)
+    xmlcfg = models.TextField(null=False)
+    status = models.CharField(max_length=20)
+
+    class Meta:
+        ordering = ('-create_date',)
+
+    def get_status(self):
+        return self.status.capitalize()
