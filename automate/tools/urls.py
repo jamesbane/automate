@@ -5,8 +5,6 @@ from django.urls import re_path
 import tools.views
 
 app_name ='tools'
-from channels.routing import get_default_application
-application = get_default_application()
 urlpatterns = [
     re_path(r'^$', tools.views.IndexView.as_view(), name='index'),
     # Tools

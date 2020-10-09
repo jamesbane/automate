@@ -292,19 +292,21 @@ def device_swap_ph2(process_id, user_id):
         process.status = process.STATUS_COMPLETED
         process.end_timestamp = timezone.now()
         process.save(update_fields=['status', 'end_timestamp'])
-
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            "room-device_swap_v2_"+str(user_id),
-            {
-                "type": "chat.message",
-                "room_id": "device_swap_v2_"+str(user_id),
-                "message": {
-                    'process_id': process.pk,
-                    'process_status': process.status_name()
-                },
-            }
-        )
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_swap_v2_"+str(user_id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_swap_v2_"+str(user_id),
+                    "message": {
+                        'process_id': process.pk,
+                        'process_status': process.status_name()
+                    },
+                }
+            )
+        except:
+            pass
         # ds.logout()
     except Exception as e:
         print("Exception")
@@ -313,6 +315,21 @@ def device_swap_ph2(process_id, user_id):
         process.end_timestamp = timezone.now()
         process.exception = traceback.format_exc()
         process.save(update_fields=['status', 'exception', 'end_timestamp'])
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_swap_v2_"+str(user_id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_swap_v2_"+str(user_id),
+                    "message": {
+                        'process_id': process.pk,
+                        'process_status': process.status_name()
+                    },
+                }
+            )
+        except:
+            pass
 
     # Cleanup
     log_raw.close()

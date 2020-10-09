@@ -271,18 +271,21 @@ def filter_device_swap(process_id, user_id):
         print("Process {}: {} -> {}".format(process_id, process.method, process.parameters))
         process.status = process.STATUS_RUNNING
         process.save(update_fields=['status'])
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            "room-device_filter_swap_"+str(user_id),
-            {
-                "type": "chat.message",
-                "room_id": "device_filter_swap_"+str(user_id),
-                "message": {
-                    'process_id': process.pk,
-                    'process_status': process.status_name()
-                },
-            }
-        )
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_filter_swap_"+str(user_id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_filter_swap_"+str(user_id),
+                    "message": {
+                        'process_id': process.pk,
+                        'process_status': process.status_name()
+                    },
+                }
+            )
+        except:
+            pass
 
         ds = BroadWorkDeviceSwapFilter(process=process)
         content = ds.device_swap_filter()["result"]
@@ -298,4 +301,19 @@ def filter_device_swap(process_id, user_id):
         process.exception = traceback.format_exc()
         process.save(update_fields=['status', 'exception', 'end_timestamp'])
 
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_filter_swap_"+str(user_id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_filter_swap_"+str(user_id),
+                    "message": {
+                        'process_id': process.pk,
+                        'process_status': process.status_name()
+                    },
+                }
+            )
+        except:
+            pass
     return content

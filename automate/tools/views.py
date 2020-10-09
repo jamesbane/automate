@@ -203,20 +203,21 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
                                              start_timestamp=timezone.now(),
                                              end_timestamp=None,
                                              view_permission=self.permission_view)
-
-
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            "room-device_filter_swap_"+str(self.request.user.id),
-            {
-                "type": "chat.message",
-                "room_id": "device_filter_swap_"+str(self.request.user.id),
-                "message": {
-                    'process_id': self.object.pk,
-                    'process_status': self.object.status_name()
-                },
-            }
-        )
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_filter_swap_" + str(self.request.user.id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_filter_swap_" + str(self.request.user.id),
+                    "message": {
+                        'process_id': self.object.pk,
+                        'process_status': self.object.status_name()
+                    },
+                }
+            )
+        except:
+            pass
         module = '.'.join(self.process_function.split('.')[:-1])
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
@@ -280,19 +281,21 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
         process.parameters['new_device_type'] = str(device_type_form.cleaned_data['new_device_type'])
         process.save()
 
-
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(
-            "room-device_swap_v2_"+str(self.request.user.id),
-            {
-                "type": "chat.message",
-                "room_id": "device_swap_v2_"+str(self.request.user.id),
-                "message": {
-                    'process_id': process.pk,
-                    'process_status': process.status_name()
-                },
-            }
-        )
+        try:
+            layer = get_channel_layer()
+            async_to_sync(layer.group_send)(
+                "room-device_swap_v2_" + str(self.request.user.id),
+                {
+                    "type": "chat.message",
+                    "room_id": "device_swap_v2_" + str(self.request.user.id),
+                    "message": {
+                        'process_id': process.pk,
+                        'process_status': process.status_name()
+                    },
+                }
+            )
+        except:
+            pass
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)

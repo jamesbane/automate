@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'channels',
 
     # Project
     'dashboard',
@@ -78,8 +79,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
     'widget_tweaks',
-    'django_extensions',
-    'channels'
+    'django_extensions'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -111,6 +111,18 @@ TEMPLATES = [
         },
     },
 ]
+redis_host = os.environ.get('REDIS_HOST', 'localhost')
+CHANNEL_LAYERS = {
+    "default": {
+        # This example app uses the Redis channel layer implementation channels_redis
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(redis_host, 6379)],
+        },
+    },
+}
+ASGI_APPLICATION = 'automate.routing.application'
+WSGI_APPLICATION = 'automate.wsgi.application'
 
 # =====================================
 # Authentication
@@ -304,16 +316,3 @@ SERVER_EMAIL = env['email']['from_address']
 # =====================================
 ADMINS = env['admins']
 MANAGERS = ADMINS'''
-
-ASGI_APPLICATION = 'automate.routing.application'
-
-CHANNEL_LAYERS = {
-    "default": {
-        # This example app uses the Redis channel layer implementation channels_redis
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("localhost", 6379)],
-        },
-    },
-}
-WSGI_APPLICATION = 'automate.wsgi.application'
