@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    'channels',
 
     # Project
     'dashboard',
@@ -111,17 +110,6 @@ TEMPLATES = [
         },
     },
 ]
-redis_host = os.environ.get('REDIS_HOST', 'localhost')
-CHANNEL_LAYERS = {
-    "default": {
-        # This example app uses the Redis channel layer implementation channels_redis
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [(redis_host, 6379)],
-        },
-    },
-}
-ASGI_APPLICATION = 'automate.routing.application'
 WSGI_APPLICATION = 'automate.wsgi.application'
 
 # =====================================

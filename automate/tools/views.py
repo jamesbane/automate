@@ -8,7 +8,6 @@ import importlib
 # Django
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.cache import caches
 from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
 from django.urls import reverse
@@ -22,7 +21,6 @@ from django.views.generic.detail import DetailView
 
 # Application
 import tools.forms
-from tools.consumers import ChatConsumer
 from tools.models import Process
 
 # Third Party
@@ -30,15 +28,12 @@ import django_rq
 from lib.bw.broadworks import BroadWorks, Nil
 from lib.pypalladion.palladion import Palladion
 from lib.pyutil.django.mixins import ProcessFormMixin
-from redis import Redis, StrictRedis
+from redis import Redis
 import rq
 from platforms.models import BroadworksPlatform
 from django.contrib.auth.models import User
 
 from tools.forms import DeviceSwapSubmitResultForm, DeviceSwapFilterFormSet, DeviceSwapDeviceTypeSelectForm
-from channels.layers import get_channel_layer
-
-from asgiref.sync import async_to_sync
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -203,29 +198,15 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
                                              start_timestamp=timezone.now(),
                                              end_timestamp=None,
                                              view_permission=self.permission_view)
-        try:
-            layer = get_channel_layer()
-            async_to_sync(layer.group_send)(
-                "room-device_filter_swap_" + str(self.request.user.id),
-                {
-                    "type": "chat.message",
-                    "room_id": "device_filter_swap_" + str(self.request.user.id),
-                    "message": {
-                        'process_id': self.object.pk,
-                        'process_status': self.object.status_name()
-                    },
-                }
-            )
-        except:
-            pass
         module = '.'.join(self.process_function.split('.')[:-1])
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)
-        filter_results = process_function(self.object.pk, self.request.user.id)
+        filter_results = process_function(self.object.pk)
 
         self.request.session['filter_results'] = filter_results
         self.request.session['filter_object_pk'] = self.object.pk
+        print("filter object pk = ", self.object.pk)
 
         # q = rq.Queue('tool', connection=Redis(host=settings.RQ_QUEUES['tool']['HOST'],
         #                                       port=settings.RQ_QUEUES['tool']['PORT'],
@@ -233,10 +214,6 @@ class DeviceSwapToolFilterView(PermissionRequiredMixin, LoginRequiredMixin, Tool
         # q.enqueue_call(process_function, args=(self.object.pk,))
 
         return HttpResponseRedirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        context = super(DeviceSwapToolFilterView, self).get_context_data()
-        return context
 
     def get_success_url(self):
         """
@@ -280,26 +257,10 @@ class DeviceSwapFilterResultView(PermissionRequiredMixin, LoginRequiredMixin, To
         process.parameters['devices_info'] = phase_two_input
         process.parameters['new_device_type'] = str(device_type_form.cleaned_data['new_device_type'])
         process.save()
-
-        try:
-            layer = get_channel_layer()
-            async_to_sync(layer.group_send)(
-                "room-device_swap_v2_" + str(self.request.user.id),
-                {
-                    "type": "chat.message",
-                    "room_id": "device_swap_v2_" + str(self.request.user.id),
-                    "message": {
-                        'process_id': process.pk,
-                        'process_status': process.status_name()
-                    },
-                }
-            )
-        except:
-            pass
         method = self.process_function.split('.')[-1]
         importlib.import_module(module)
         process_function = eval(self.process_function)
-        filter_results = process_function(process.pk, self.request.user.id)
+        filter_results = process_function(process.pk)
 
         return HttpResponseRedirect(self.get_success_url())
 

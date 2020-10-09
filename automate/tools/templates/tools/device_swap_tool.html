@@ -11,33 +11,19 @@
         <p/>
         <h4>Summary of actions:</h4>
         <pre>Fill here</pre>
-
-        <div class="card-body">
-            <div class="form-group row">
-                <form method="POST" id="filter-form">
-                    {% csrf_token %}
-                    <table>
-                        {{ form.as_table }}
-                    </table>
-                    <p><label></label><input id="submit" type="submit" value="Filter Devices"/></p>
-                </form>
-            </div>
-        </div>
-
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Filtering Devices</h5>
-                    </div>
-                    <div class="modal-body">
-                        <p>Process ID: <span id="process_id"></span></p>
-                        <p>Process Status: <span id="process_status"></span></p>
-                        <p>Please wait</p>
-                    </div>
-                </div>
-            </div>
+    </div>
+    <div id="loading">
+        <div class="loader"></div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+            <form method="POST" id="filter-form">
+                {% csrf_token %}
+                <table>
+                    {{ form.as_table }}
+                </table>
+                <input id="submit" type="submit" value="Filter Devices"/>
+            </form>
         </div>
     </div>
 {% endblock tool_content %}
@@ -48,35 +34,8 @@
         <script src="{{ form.javascript }}"></script>
     {% endif %}
     <script>
-        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/device_swap/stream/";
-        var socket = new ReconnectingWebSocket(ws_path);
-
-        socket.onmessage = function (message) {
-            console.log("Got websocket message " + message.data);
-            let data = JSON.parse(message.data);
-            if (data.room == "device_filter_swap_" + {{ request.user.id }}) {
-                let process_id = data['message']['process_id'];
-                let process_status = data['message']['process_status'];
-                $("#process_id").html(process_id);
-                $("#process_status").html(process_status);
-            }
-        }
-
-        socket.onopen = function () {
-            console.log("Connected to chat socket");
-
-            socket.send(JSON.stringify({
-                "command": "join",
-                "room": "device_filter_swap_" + {{ request.user.id }}
-            }));
-        };
-        socket.onclose = function () {
-            console.log("Disconnected from chat socket");
-        }
-
-        $("#filter-form").submit(function () {
-            $("#exampleModal").modal('show');
-        })
+    $("#filter-form").submit(function() {
+        $("#loading").css('display', 'block');
+    });
     </script>
 {% endblock javascript %}

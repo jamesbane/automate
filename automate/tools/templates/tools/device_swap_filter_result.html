@@ -11,7 +11,10 @@
         <pre>
         Choose items and press Run.
     </pre>
-        <form class="formset" method="POST" id="filter-form">
+        <div id="loading">
+            <div class="loader"></div>
+        </div>
+        <form class="formset" method="POST" id="swap-form">
             {% csrf_token %}
             {{ formset.management_form }}
             <table class="table" id="swap-filter-result-table">
@@ -65,25 +68,8 @@
                 <p><label></label><input id="submit" type="submit" value="Run"/></p>
             </div>
         </form>
-
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Filtering Devices</h5>
-                    </div>
-                    <div class="modal-body">
-                        <p>Process ID: <span id="process_id"></span></p>
-                        <p>Process Status: <span id="process_status"></span></p>
-                        <p>Please wait</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 {% endblock tool_content %}
-
 {% block javascript %}
     {{ block.super }}
     {% if form.javascript %}
@@ -102,35 +88,9 @@
                 $('input:checkbox').not(this).prop('checked', this.checked);
             });
         });
-        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/device_swap/stream/";
-        var socket = new ReconnectingWebSocket(ws_path);
 
-        socket.onmessage = function (message) {
-            console.log("Got websocket message " + message.data);
-            let data = JSON.parse(message.data);
-            if (data.room == "device_swap_v2_" + {{ request.user.id }}) {
-                let process_id = data['message']['process_id'];
-                let process_status = data['message']['process_status'];
-                $("#process_id").html(process_id);
-                $("#process_status").html(process_status);
-            }
-        }
-
-        socket.onopen = function () {
-            console.log("Connected to chat socket");
-
-            socket.send(JSON.stringify({
-                "command": "join",
-                "room": "device_swap_v2_" + {{ request.user.id }}
-            }));
-        };
-        socket.onclose = function () {
-            console.log("Disconnected from chat socket");
-        }
-
-        $("#filter-form").submit(function () {
-            $("#exampleModal").modal('show');
+        $("#swap-form").submit(function () {
+            $("#loading").css('display', 'block');
         })
     </script>
-{% endblock javascript %}
+{% endblock %}

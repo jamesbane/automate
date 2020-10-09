@@ -174,8 +174,6 @@ class DeviceSwapSubmitResultForm(forms.Form):
     user_id = forms.CharField(label='User ID', required=True, max_length=256, )
     line_port = forms.CharField(label='Line/Port', required=True, max_length=256)
 
-    javascript = static('tools/device_swap_filter_result.js')
-
 
 class DeviceSwapDeviceTypeSelectForm(forms.Form):
     new_device_type = forms.ModelChoiceField(queryset=DeviceType.objects.all(), label='New Device Type')

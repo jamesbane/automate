@@ -22,13 +22,12 @@ class Process(models.Model):
         (STATUS_RUNNING, 'Running'),
     )
     PLATFORM_BROADWORKS = 0
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='processes',
-                             verbose_name=('user'), null=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE, related_name='processes', verbose_name=('user'), null=False)
     method = models.CharField(max_length=256, null=False)
     platform_type = models.SmallIntegerField(null=False)
-    platform_id = models.ForeignKey(BroadworksPlatform, on_delete=models.CASCADE)
+    platform_id = models.ForeignKey(BroadworksPlatform,on_delete=models.CASCADE)
     parameters = JSONField()
-    start_timestamp = models.DateTimeField(null=False, auto_now=True)
+    start_timestamp = models.DateTimeField(null=False,auto_now=True)
     end_timestamp = models.DateTimeField(null=True)
     status = models.PositiveSmallIntegerField(null=False, default=STATUS_SCHEDULED, choices=CHOICES_STATUS)
     exception = models.TextField()
@@ -45,8 +44,6 @@ class Process(models.Model):
             return "Broadworks"
         return "Unknown"
 
-    def status_name(self):
-        return dict(self.CHOICES_STATUS)[self.status]
     class Meta:
         ordering = ['-start_timestamp', '-end_timestamp']
         permissions = (
@@ -84,7 +81,7 @@ class Process(models.Model):
 
 
 class ProcessContent(models.Model):
-    process = models.ForeignKey('Process', null=True, on_delete=models.CASCADE, related_name='content')
+    process = models.ForeignKey('Process',null=True, on_delete=models.CASCADE, related_name='content')
     tab = models.CharField(max_length=32)
     priority = models.PositiveSmallIntegerField(default=32767)
     raw = models.FileField(upload_to='process', storage=ProtectedFileStorage())
