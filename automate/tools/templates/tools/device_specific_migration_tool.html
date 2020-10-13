@@ -5,15 +5,21 @@
   <div class="card-header justify-content-between">
     <h2>Device Specific Migration</h2>
   </div>
-  <div class="card-body">
+  <div>
     <h2 class="text-primary"><i class="fa fa-info"></i> Documentation</h2>
-    <p>This tool migrates BroadWorks Polycom Devices from their generic form to their respective specific Device Type based upon the current registered User Agent.
-       When run on a Service Provider, a Group is required. When running on an Enterprise, a group is optional. <strong>If no group is provided, it is assumed that all groups
-       within the Enterprise will be migrated.</strong><br/><br/>
-       This process involved rebuilding Devices and assigned Lines and Shared Call Appearances on a device. <strong>This is service impacting for the respective customer.</strong>
-     </p>
-    <h4>Summary of actions:</h4>
-    <pre>
+
+      <p>This tool migrates BroadWorks Polycom Devices from their generic form to their respective specific Device Type based upon the current registered User Agent.
+         When run on a Service Provider, a Group is required. When running on an Enterprise, a group is optional. <strong>If no group is provided, it is assumed that all groups
+         within the Enterprise will be migrated.</strong><br/><br/>
+         This process involved rebuilding Devices and assigned Lines and Shared Call Appearances on a device. <strong>This is service impacting for the respective customer.</strong>
+      </p>
+    <div class="col-sm-3 col-sm-12 col-sm-3">
+    <div class="widget">
+        <div class="widget-header">
+            <h3 type="button" class="btn btn-secondary minimize-widget widget-title ik ik-plus pull-right"> Summary of actions:</h3>
+        </div>
+        <div class="widget-body" style="display: none;">
+            <pre>
 for each group:
     GroupAccessDeviceGetListRequest
     for device in devices:
@@ -54,9 +60,13 @@ for each group:
             GroupAccessDeviceGetUserListRequest
             GroupAccessDeviceModifyUserRequest
             # Success!</pre>
+                    </div>
+                  </div>
 
-    <h3 class="text-danger"><i class="ik ik-alert-triangle"></i> </h3>
-    <p><strong class="text-danger">WARNING This will disrupt service.</strong></p>
+    <span class="text-danger"><i class="ik ik-alert-triangle"></i> 
+      <span class="badge badge-pill badge-danger mb-1">WARNING This will disrupt service for most devices and will stop service on any manually configured devices.</span>
+    </span>
+
     <div class="well">
       <form method="POST">
         {% csrf_token %}
