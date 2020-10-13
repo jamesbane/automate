@@ -1,72 +1,97 @@
 {% extends 'tools/base.html' %}
 
 {% block tool_content %}
-  <h1 class="page-header">
-    {{ object.method }} Results
-  </h1>
-  <div>
-    <div class="btn-group pull-right">
-      <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
-          <i class="fa fa-download"></i> Download
-          <span class="caret"></span>
-      </a>
-      <ul class="dropdown-menu">
-        {% for content in object.content.all %}
-          {% if content.raw %}
-            <li><a href="{{ content.raw.url }}" download>{{ content.tab }}</a></li>
-          {% endif %}
-        {% endfor %}
-      </ul>
+    <div class="col-md-12">
+        <div class="card table-card">
+            <div class="card-header">
+                <h3>{{ object.method }} Results</h3>
+                <a class="btn btn-default dropdown-toggle float-right" data-toggle="dropdown" href="#">
+                    <i class="ik ik-download"></i> Download
+                    <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    {% for content in object.content.all %}
+                        {% if content.raw %}
+                            <li class="dropdown-item"><a href="{{ content.raw.url }}" download>{{ content.tab }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th rowspan="2">User</th>
+                    <th rowspan="2">Process Id</th>
+                    <th rowspan="2">Platform Type</th>
+                    <th rowspan="2">Platform</th>
+                    <th rowspan="2">Inputs</th>
+                    <th rowspan="2">Start Time</th>
+                    <th rowspan="2">End Time</th>
+                    <th rowspan="2">Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <div class="d-inline-block align-middle">
+                        <div class="d-inline-block">
+                            <td>{{ object.user.get_full_name }}</td>
+                        </div>
+                    </div>
+                    <td>{{ object.id }}</td>
+                    <td>{{ object.get_platform_type_display }}</td>
+                    <td>{{ object.platform.name }}</td>
+                    <td>{{ parameters }}</td>
+                    <td>{{ object.start_timestamp }}</td>
+                    <td>{{ object.end_timestamp }}</td>
+                    <td>{{ object.get_status_display }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <p>
-      User: {{ object.user.get_full_name }}<br/>
-      Process Id: {{ object.id }}<br/>
-      Platform Type: {{ object.get_platform_type_display }}<br/>
-      Platform: {{ object.platform.name }}<br/>
-      Parameters: {{ parameters }}<br/>
-      Runtime: {{ object.start_timestamp }} - {{ object.end_timestamp }}<br/>
-      Status: {{ object.get_status_display }}<br/>
-    </p>
-  </div>
-  <div>
-    <!-- Content tabs -->
-    <ul id="content-tabs" class="nav nav-tabs" role="tablist">
-      {% if object.exception %}
-        <li role="presentation"><a href="#tabs-0" aria-controls="home" role="tab" data-toggle="tab">Error</a></li>
-      {% endif %}
-      {% for content in object.content.all %}
-        <li role="presentation"><a href="#tabs-{{ content.id	}}" aria-controls="home" role="tab" data-toggle="tab">{{ content.tab }}</a></li>
-      {% endfor %}
-    </ul>
+    <div>
+        <!-- Content tabs -->
+        <ul id="content-tabs" class="nav nav-tabs" role="tablist">
+            {% if object.exception %}
+                <li role="presentation" class="nav-item"><a href="#tabs-0" class="nav-link" aria-controls="home" role="tab" data-toggle="tab">Error</a>
+                </li>
+            {% endif %}
+            {% for content in object.content.all %}
+                <li role="presentation" class="nav-item"><a href="#tabs-{{ content.id }}" class="nav-link" aria-controls="home" role="tab"
+                                           data-toggle="tab">{{ content.tab }}</a></li>
+            {% endfor %}
+        </ul>
 
-    <!-- Tab panes -->
-    <div class="tab-content">
-      {% if object.exception %}
-        <div role="tabpanel" class="tab-pane" id="tabs-0">
-          <pre>{{ object.exception }}</pre>
+        <!-- Tab panes -->
+        <div class="tab-content">
+            {% if object.exception %}
+                <div role="tabpanel" class="tab-pane" id="tabs-0">
+                    <pre>{{ object.exception }}</pre>
+                </div>
+            {% endif %}
+            {% for content in object.content.all %}
+                <div role="tabpanel" class="tab-pane {% if content.html %}ajax{% endif %}"
+                     {% if content.html %}data-uri="{{ content.html.url }}"{% endif %} id="tabs-{{ content.id }}">
+                    {% if content.html %}
+                        <pre>Loading data</pre>
+                    {% elif content.raw %}
+                        <pre class="ajax" data-uri="{{ content.raw.url }}">Loading data</pre>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
-      {% endif %}
-      {% for content in object.content.all %}
-        <div role="tabpanel" class="tab-pane {% if content.html %}ajax{% endif %}" {% if content.html %}data-uri="{{ content.html.url }}"{% endif %} id="tabs-{{ content.id	}}">
-          {% if content.html %}
-            <pre>Loading data</pre>
-          {% elif content.raw %}
-            <pre class="ajax" data-uri="{{ content.raw.url }}">Loading data</pre>
-          {% endif %}
-        </div>
-      {% endfor %}
     </div>
-  </div>
+
 {% endblock tool_content %}
 
 {% block javascript %}
-  {{ block.super }}
-  <script>
-  $(".ajax").each(function (e) {
-    var dataUri = $(this).attr("data-uri");
-    if (dataUri !== undefined & dataUri != '#' & dataUri.length > 0) {
-      $(this).load(dataUri);
-    }
-  });
-  </script>
+    {{ block.super }}
+    <script>
+        $(".ajax").each(function (e) {
+            var dataUri = $(this).attr("data-uri");
+            if (dataUri !== undefined & dataUri != '#' & dataUri.length > 0) {
+                $(this).load(dataUri);
+            }
+        });
+    </script>
 {% endblock javascript %}

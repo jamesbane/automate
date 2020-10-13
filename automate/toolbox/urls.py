@@ -27,7 +27,6 @@ urlpatterns = [
 ]
 
 # Allow serving media content if in debug mode
-if settings.DEBUG == True:
-    urlpatterns += [
-        url(r'^media/(?P<path>.*)$', django.views.static.serve, {'document_root': settings.MEDIA_ROOT,}),
-    ]
+urlpatterns += [
+    url(r'^media/(?P<path>.*)$', django.views.static.serve, {'document_root': settings.MEDIA_ROOT,}),
+]

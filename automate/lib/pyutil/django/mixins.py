@@ -77,6 +77,7 @@ class ProcessFormMixin(FormMixin):
         if formset:
             if form.is_valid() and formset.is_valid():
                 return self.form_valid(form, formset)
+            return self.form_invalid(form, formset)
         else:
             if form.is_valid():
                 return self.form_valid(form, None)

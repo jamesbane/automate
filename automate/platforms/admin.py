@@ -2,7 +2,8 @@
 from django.contrib import admin
 # local
 from .models import *
+from platforms.forms import BroadworksPlatformForm
 
-
-# Register your models here.
-admin.site.register(BroadworksPlatform, admin.ModelAdmin)
+@admin.register(BroadworksPlatform)
+class BroadworksPlatformAdmin(admin.ModelAdmin):
+    form = BroadworksPlatformForm

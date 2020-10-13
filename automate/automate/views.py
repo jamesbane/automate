@@ -30,6 +30,6 @@ class IndexRedirectView(RedirectView):
 
 class ProtectedFileView(View):
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise Http404("File not found")
         return serve(request, path=kwargs['path'], document_root=settings.PROTECTED_ROOT, show_indexes=False)
