@@ -42,7 +42,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 class ProcessListView(LoginRequiredMixin, ListView):
     model = Process
-    paginate_by = 100
+    paginate_by = 50
     template = 'process_list.html'
 
     def get_context_data(self, **kwargs):

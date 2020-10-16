@@ -65,8 +65,8 @@ class BroadWorksLab:
         resp = self._bw.ServiceProviderServiceGetAuthorizationListRequest('00001')
         content.write(self.parse_response(resp, level))
         Lab_service_authorization_list = resp['data']
-        content.write("{}GroupServiceGetAuthorizationListRequest('00001', 'IP Voice Phone System') ".format('    '*level)),
-        resp = self._bw.GroupServiceGetAuthorizationListRequest('00001', 'IP Voice Phone System')
+        content.write("{}GroupServiceGetAuthorizationListRequest('00001', '00001-01') ".format('    '*level)),
+        resp = self._bw.GroupServiceGetAuthorizationListRequest('00001', '00001-01')
         Lab_group_service_auth = resp['data']
         content.write(self.parse_response(resp, level))
         content.write('\n')
@@ -358,7 +358,7 @@ users = [
         'service_pack': 'IPVComplete',
         'assigned_services': ['Authentication'],
         'appearances': [
-            { 'user_id': '' },
+            { 'user_id': '0301_LAB2_2001', 'line_port': '0301_LAB1_1001_1@lab.impulsevoip.net' },
             { 'user_id': '' }],
         'busy_lamp_field_users': [''],
     },

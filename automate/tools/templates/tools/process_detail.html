@@ -40,7 +40,11 @@
                     <td>{{ object.id }}</td>
                     <td>{{ object.get_platform_type_display }}</td>
                     <td>{{ object.platform.name }}</td>
-                    <td>{{ parameters }}</td>
+                    <td><span>
+                    Provider Id: {{ object.parameters.provider_id }} <br/>
+                    Group Id: {{ object.parameters.group_id }} <br/>
+                    Department: {{ object.parameters.department }}
+                    <span></td>
                     <td>{{ object.start_timestamp }}</td>
                     <td>{{ object.end_timestamp }}</td>
                     <td>{{ object.get_status_display }}</td>
