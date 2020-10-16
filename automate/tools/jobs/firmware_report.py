@@ -15,7 +15,7 @@ from django.conf import settings
 from tools.models import Process, ProcessContent
 
 # Third Party
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 
 
 def firmware_report(process_id):

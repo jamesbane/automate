@@ -8,15 +8,23 @@
       This tool ensures Busy Lamp Field (BLF) is correctly configured for a user only if they have monitored users.
       <strong>If no group is provided, it is assumed that all groups require action.</strong>
     </p>
-    <h4>Summary of actions:</h4>
-    <pre>
+    <div class="col-sm-3 col-sm-12 col-sm-3">
+    <div class="widget">
+        <div class="widget-header">
+            <h3 type="button" class="btn btn-secondary minimize-widget widget-title ik ik-plus pull-right"> Summary of actions:</h3>
+        </div>
+        <div class="widget-body" style="display: none;">
+            <pre>
 for each user:
     UserBusyLampFieldGetRequest16sp2
     if listUri exists and monitoredUserTable is empty then:
         Clear listUri with UserBusyLampFieldModifyRequest
-    </pre>
+            </pre>
+          </div>
+        </div>
 
-    <h2 class="text-danger"><i class="fa fa-warning"></i> </h2>
+    <span class="text-danger"><i class="ik ik-alert-triangle"></i> 
+    </span>
     <div class="well">
       <form method="POST">
         {% csrf_token %}

@@ -10,6 +10,10 @@ urlpatterns = [
     re_path(r'^call-park-pickup-configurator$', tools.views.CallParkPickupConfiguratorToolView.as_view(), name='call-park-pickup-configurator'),
     re_path(r'^dect-configurator$', tools.views.DectConfiguratorToolView.as_view(), name='dect-configurator'),
     re_path(r'^device-specific-migration-tool$', tools.views.DeviceSpecificMigrationToolView.as_view(), name='device-specific-migration-tool'),
+    # Device Swap Tool
+    re_path(r'^device-swap-tool$', tools.views.DeviceSwapToolFilterView.as_view(), name='device-swap-tool'),
+    re_path(r'^device-swap-filter-result$', tools.views.DeviceSwapFilterResultView.as_view(), name='device-swap-filter-result'),
+
     re_path(r'^fraud-compliance-reset-tool$', tools.views.FraudComplianceResetToolView.as_view(), name='fraud-compliance-reset-tool'),
     re_path(r'^lab-rebuild-tool$', tools.views.LabResetToolView.as_view(), name='lab-rebuild-tool'),
     re_path(r'^push-to-talk-configurator$', tools.views.PushToTalkConfiguratorToolView.as_view(), name='push-to-talk-configurator'),

@@ -17,7 +17,7 @@ from tools.models import Process, ProcessContent
 
 # Third Party
 from lib.pyutil.util import Util
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 
 
 class FraudCompliance():

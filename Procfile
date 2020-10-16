@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath steward-master steward.wsgi
+web: gunicorn --pythonpath automate automate.wsgi

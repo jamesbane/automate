@@ -36,7 +36,7 @@ class Process(models.Model):
     @property
     def platform(self):
         if self.platform_type == Process.PLATFORM_BROADWORKS:
-            return BroadworksPlatform.objects.get(pk=self.platform_id)
+            return BroadworksPlatform.objects.get(pk=self.platform_id.id)
         return None
 
     def get_platform_type_display(self):
@@ -55,6 +55,8 @@ class Process(models.Model):
             ("process_dect_configurator_view", "DECT Configurator View Results"),
             ("process_device_specific_migration_exec", "Device Specific Migration Execute"),
             ("process_device_specific_migration_view", "Device Specific Migration View Results"),
+            ("process_device_swap_exec", "Device Swap Ph1 Execute"),
+            ("process_device_swap_view", "Device Swap Ph1 View Results"),
             ("process_firmware_report_exec", "Firmware Report Execute"),
             ("process_firmware_report_view", "Firmware Report View Results"),
             ("process_fraud_compliance_reset_exec", "Fraud Compliance Reset Tool Execute"),

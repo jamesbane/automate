@@ -19,7 +19,7 @@ from tools.models import Process, ProcessContent
 
 # Third Party
 from lib.pyutil.util import Util
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 
 
 
@@ -30,7 +30,8 @@ class BroadWorksLab:
         self._process = process
         self._bw = BroadWorks(url=self._process.platform.uri,
                               username=self._process.platform.username,
-                              password=self._process.platform.password)
+                              password=self._process.platform.password,
+                              location=self._process.platform.uri)
         self._bw.LoginRequest14sp4()
 
     def parse_response(self, response, level):
@@ -60,13 +61,13 @@ class BroadWorksLab:
         content.write('\n')
 
         content.write("Retrieve Defaults\n")
-        content.write("{}ServiceProviderServiceGetAuthorizationListRequest('LokiHelper') ".format('    '*level)),
-        resp = self._bw.ServiceProviderServiceGetAuthorizationListRequest('LokiHelper')
+        content.write("{}ServiceProviderServiceGetAuthorizationListRequest('00001') ".format('    '*level)),
+        resp = self._bw.ServiceProviderServiceGetAuthorizationListRequest('00001')
         content.write(self.parse_response(resp, level))
-        loki_service_authorization_list = resp['data']
-        content.write("{}GroupServiceGetAuthorizationListRequest('LokiHelper', 'IP Voice Phone System') ".format('    '*level)),
-        resp = self._bw.GroupServiceGetAuthorizationListRequest('LokiHelper', 'IP Voice Phone System')
-        loki_group_service_auth = resp['data']
+        Lab_service_authorization_list = resp['data']
+        content.write("{}GroupServiceGetAuthorizationListRequest('00001', '00001-01') ".format('    '*level)),
+        resp = self._bw.GroupServiceGetAuthorizationListRequest('00001', '00001-01')
+        Lab_group_service_auth = resp['data']
         content.write(self.parse_response(resp, level))
         content.write('\n')
 
@@ -91,7 +92,7 @@ class BroadWorksLab:
         content.write(self.parse_response(resp, level))
         # authorized services
         authorization_list = {'groupServiceAuthorization': list(), 'userServiceAuthorization': list()}
-        for d in loki_service_authorization_list['groupServicesAuthorizationTable']:
+        for d in Lab_service_authorization_list['groupServicesAuthorizationTable']:
             if d['Authorized'] != 'true':
                 continue
             data = OrderedDict()
@@ -101,7 +102,7 @@ class BroadWorksLab:
             else:
                 data['authorizedQuantity'] = {'quantity': d['Quantity']}
             authorization_list['groupServiceAuthorization'].append(data)
-        for d in loki_service_authorization_list['userServicesAuthorizationTable']:
+        for d in Lab_service_authorization_list['userServicesAuthorizationTable']:
             if d['Authorized'] != 'true':
                 continue
             data = OrderedDict()
@@ -116,13 +117,15 @@ class BroadWorksLab:
         content.write(self.parse_response(resp, level))
 
         # service packs
-        content.write("{}ServiceProviderServicePackGetListRequest('LokiHelper') ".format('    '*level)),
-        resp = self._bw.ServiceProviderServicePackGetListRequest('LokiHelper')
+        content.write("{}ServiceProviderServicePackGetListRequest('00001') ".format('    '*level)),
+        resp = self._bw.ServiceProviderServicePackGetListRequest('00001')
         content.write(self.parse_response(resp, level))
-        loki_service_pack_list = resp['data']['servicePackName']
-        for service_pack_name in loki_service_pack_list:
-            content.write("{}ServiceProviderServicePackGetDetailListRequest('LokiHelper', {}) ".format('    '*level, service_pack_name)),
-            resp = self._bw.ServiceProviderServicePackGetDetailListRequest('LokiHelper', service_pack_name)
+        Lab_service_pack_list = resp['data']['servicePackName']
+        print(Lab_service_pack_list)
+        for service_pack_name in Lab_service_pack_list:
+            print(service_pack_name)
+            content.write("{}ServiceProviderServicePackGetDetailListRequest('00001', {}) ".format('    '*level, service_pack_name)),
+            resp = self._bw.ServiceProviderServicePackGetDetailListRequest('00001', service_pack_name)
             content.write(self.parse_response(resp, level))
             service_pack_detail = resp['data']
 
@@ -152,7 +155,7 @@ class BroadWorksLab:
             resp = self._bw.GroupModifyRequest(provider['id'], group['id'], callingLineIdPhoneNumber=group['number'])
             content.write(self.parse_response(resp, level))
             service_auth = {'servicePackAuthorization': list(), 'groupServiceAuthorization': list(), 'userServiceAuthorization': list()}
-            for d in loki_group_service_auth['servicePacksAuthorizationTable']:
+            for d in Lab_group_service_auth['servicePacksAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -162,7 +165,7 @@ class BroadWorksLab:
                 else:
                     data['authorizedQuantity'] = {'quantity': d['Quantity']}
                 service_auth['servicePackAuthorization'].append(data)
-            for d in loki_group_service_auth['groupServicesAuthorizationTable']:
+            for d in Lab_group_service_auth['groupServicesAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -172,7 +175,7 @@ class BroadWorksLab:
                 else:
                     data['authorizedQuantity'] = {'quantity': d['Quantity']}
                 service_auth['groupServiceAuthorization'].append(data)
-            for d in loki_group_service_auth['userServicesAuthorizationTable']:
+            for d in Lab_group_service_auth['userServicesAuthorizationTable']:
                 if d['Authorized'] != 'true':
                     continue
                 data = OrderedDict()
@@ -301,702 +304,85 @@ class BroadWorksLab:
 # Local variables
 #
 
+process = {
+    'platform': {
+        #'url': 'https://labxsp1.impulsevoip.net/webservice/services/ProvisioningService?wsdl',
+        #'username': 'JJjpextechpaas2@bwks.io',
+        #'password': 'M50lPE6jHZKg5FhLZDwc',
+        #'url': 'https://onestreamnetworks-sb.oci-us99.bcld.io/webservice/services/ProvisioningService?wsdl',
+        #'username': 'jpexDev_fdcvoip.net@broadcloudpbx.net',
+        #'password': '0!6~wFrzo2.ykcbi^+bkC!',
+        #'id': '12332',
+        #'seedSP': 'Fuse',
+        #'seedGrp': 'Fuse Onboard Group',
+    }
+}
+platform = {
+    'url': 'https://labxsp1.impulsevoip.net/webservice/services/ProvisioningService?wsdl'
+}
+
 provider = {
-    'id': 'IP_Voice_Engineering_Lab',
-    'description': 'IP Voice Engineering Lab',
-    'numbers': ['+1-251-555-1100', '+1-251-555-2100',],
+    'id': '0301_Lab',
+    'description': '301 Engineering Lab',
+    'numbers': ['+1-704-555-1100', '+1-704-555-2100',],
 }
 groups = [
     {
-        'id': 'IPVE_LAB1',
-        'name': 'IP Voice Engineering Lab 1',
-        'number': '+1-251-555-1100',
-        'numbers': ['+1-251-555-1100',],
+        'id': '0301_LAB1',
+        'name': '0301_LAB Engineering Lab 1',
+        'number': '+1-704-555-1100',
+        'numbers': ['+1-704-555-1100',],
         'assigned_services': ['Outgoing Calling Plan', 'Hunt Group'],
-        'service_instances': [
-            {
-                'type': 'Hunt Group',
-                'user_id': '12515551100@telapexinc.com',
-                'number': '+1-251-555-1100',
-                'extension': '1100',
-                'name': 'Lab 1 Main Huntgroup',
-                'clid_number': '+1-251-555-1100',
-                'clid_last_name': 'Lab 1',
-                'clid_first_name': 'Main Huntgroup',
-                'members': [
-                    'IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                    'IPVE_LAB1_1004', 'IPVE_LAB1_1005', 'IPVE_LAB1_1006',
-                    'IPVE_LAB1_1007', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                    'IPVE_LAB1_1010', 'IPVE_LAB1_1011',
-                    'IPVE_LAB1_1101', 'IPVE_LAB1_1102', 'IPVE_LAB1_1103',
-                    'IPVE_LAB1_1104', 'IPVE_LAB1_1105', 'IPVE_LAB1_1106',
-                    'IPVE_LAB1_1107', 'IPVE_LAB1_1108',
-                ],
-            }
-        ]
+        'service_instances': ['']
     },
     {
-        'id': 'IPVE_LAB2',
-        'name': 'IP Voice Engineering Lab 2',
-        'number': '+1-251-555-2100',
-        'numbers': ['+1-251-555-2100',],
+        'id': '0301_LAB2',
+        'name': '0301_LAB Engineering Lab 2',
+        'number': '+1-704-555-2100',
+        'numbers': ['+1-704-555-2100',],
         'assigned_services': ['Outgoing Calling Plan', 'Hunt Group'],
-        'service_instances': [
-            {
-                'type': 'Hunt Group',
-                'user_id': '12515552100@telapexinc.com',
-                'number': '+1-251-555-2100',
-                'extension': '2100',
-                'name': 'Lab 2 Main Huntgroup',
-                'clid_number': '+1-251-555-2100',
-                'clid_last_name': 'Lab 2',
-                'clid_first_name': 'Main Huntgroup',
-                'members': [
-                    'IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                    'IPVE_LAB2_2004', 'IPVE_LAB2_2005', 'IPVE_LAB2_2006',
-                    'IPVE_LAB2_2007', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                    'IPVE_LAB2_2010', 'IPVE_LAB2_2011',
-                    'IPVE_LAB2_2101', 'IPVE_LAB2_2102', 'IPVE_LAB2_2103',
-                    'IPVE_LAB2_2104', 'IPVE_LAB2_2105', 'IPVE_LAB2_2106',
-                    'IPVE_LAB2_2107', 'IPVE_LAB2_2108',
-                ],
-            }
-        ]
+        'service_instances': ['']
     }
 ]
 users = [
     # Group 1
     {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1001',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-1001',
-        'first_name': 'IPVE Lab',
+        'group_id': '0301_LAB1',
+        'user_id': '0301_LAB1_1001',
+        'device_type': 'Generic SIP Phone',
+        'device_username': '301-1001',
+        'first_name': '301 Lab',
         'last_name': '1001',
         'extension': '1001',
-        'line_port': 'IPVE_LAB1_1001@telapexinc.com',
+        'line_port': '0301_LAB__1_1001@lab.impulsevoip.net',
         'service_pack': 'IPVComplete',
+        'assigned_services': ['Authentication'],
         'appearances': [
-            { 'user_id': 'IPVE_LAB1_1002', 'line_port': 'IPVE_LAB1_1001_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1003', 'line_port': 'IPVE_LAB1_1001_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1004', 'IPVE_LAB1_1005', 'IPVE_LAB1_1006',
-                                  'IPVE_LAB1_1007', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
+            { 'user_id': '0301_LAB2_2001', 'line_port': '0301_LAB1_1001_1@lab.impulsevoip.net' },
+            { 'user_id': '' }],
+        'busy_lamp_field_users': [''],
     },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1002',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-1002',
-        'first_name': 'IPVE Lab',
-        'last_name': '1002',
-        'extension': '1002',
-        'line_port': 'IPVE_LAB1_1002@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1003', 'line_port': 'IPVE_LAB1_1002_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1004', 'line_port': 'IPVE_LAB1_1002_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1005', 'IPVE_LAB1_1006',
-                                  'IPVE_LAB1_1007', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1003',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-1003',
-        'first_name': 'IPVE Lab',
-        'last_name': '1003',
-        'extension': '1003',
-        'line_port': 'IPVE_LAB1_1003@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1004', 'line_port': 'IPVE_LAB1_1003_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1005', 'line_port': 'IPVE_LAB1_1003_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1006',
-                                  'IPVE_LAB1_1007', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1004',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-1004',
-        'first_name': 'IPVE Lab',
-        'last_name': '1004',
-        'extension': '1004',
-        'line_port': 'IPVE_LAB1_1004@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1005', 'line_port': 'IPVE_LAB1_1004_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1006', 'line_port': 'IPVE_LAB1_1004_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                                  'IPVE_LAB1_1007', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1005',
-        'device_type': 'Polycom_VVX500',
-        'device_username': 'IPVE-1005',
-        'first_name': 'IPVE Lab',
-        'last_name': '1005',
-        'extension': '1005',
-        'line_port': 'IPVE_LAB1_1005@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1006', 'line_port': 'IPVE_LAB1_1005_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1007', 'line_port': 'IPVE_LAB1_1005_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                                  'IPVE_LAB1_1004', 'IPVE_LAB1_1008', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1006',
-        'device_type': 'Polycom_VVX600',
-        'device_username': 'IPVE-1006',
-        'first_name': 'IPVE Lab',
-        'last_name': '1006',
-        'extension': '1006',
-        'line_port': 'IPVE_LAB1_1006@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1007', 'line_port': 'IPVE_LAB1_1006_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1008', 'line_port': 'IPVE_LAB1_1006_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                                  'IPVE_LAB1_1004', 'IPVE_LAB1_1005', 'IPVE_LAB1_1009',
-                                  'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1007',
-        'device_type': 'Polycom_IP335',
-        'device_username': 'IPVE-1007',
-        'first_name': 'IPVE Lab',
-        'last_name': '1007',
-        'extension': '1007',
-        'line_port': 'IPVE_LAB1_1007@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1008', 'line_port': 'IPVE_LAB1_1007_1@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                                  'IPVE_LAB1_1004', 'IPVE_LAB1_1005', 'IPVE_LAB1_1006',
-                                  'IPVE_LAB1_1009', 'IPVE_LAB1_1010'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1008',
-        'device_type': 'Polycom_IP450',
-        'device_username': 'IPVE-1008',
-        'first_name': 'IPVE Lab',
-        'last_name': '1008',
-        'extension': '1008',
-        'line_port': 'IPVE_LAB1_1008@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1009', 'line_port': 'IPVE_LAB1_1008_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1010', 'line_port': 'IPVE_LAB1_1008_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1001', 'IPVE_LAB1_1002', 'IPVE_LAB1_1003',
-                                  'IPVE_LAB1_1004', 'IPVE_LAB1_1005', 'IPVE_LAB1_1006',
-                                  'IPVE_LAB1_1007'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1009',
-        'device_type': 'Polycom_IP550',
-        'device_username': 'IPVE-1009',
-        'first_name': 'IPVE Lab',
-        'last_name': '1009',
-        'extension': '1009',
-        'line_port': 'IPVE_LAB1_1009@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1010', 'line_port': 'IPVE_LAB1_1009_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1001', 'line_port': 'IPVE_LAB1_1009_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1002', 'IPVE_LAB1_1003', 'IPVE_LAB1_1004',
-                                  'IPVE_LAB1_1005', 'IPVE_LAB1_1006', 'IPVE_LAB1_1007',
-                                  'IPVE_LAB1_1008'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1010',
-        'device_type': 'Polycom_IP650',
-        'device_username': 'IPVE-1010',
-        'first_name': 'IPVE Lab',
-        'last_name': '1010',
-        'extension': '1010',
-        'line_port': 'IPVE_LAB1_1010@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB1_1001', 'line_port': 'IPVE_LAB1_1010_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB1_1002', 'line_port': 'IPVE_LAB1_1010_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1003', 'IPVE_LAB1_1004', 'IPVE_LAB1_1005',
-                                  'IPVE_LAB1_1006', 'IPVE_LAB1_1007', 'IPVE_LAB1_1008',
-                                  'IPVE_LAB1_1009'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1011',
-        'device_type': 'Polycom-conf',
-        'device_username': 'IPVE-1011',
-        'first_name': 'IPVE Lab',
-        'last_name': '1011',
-        'extension': '1011',
-        'line_port': 'IPVE_LAB1_1011@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [],
-        'busy_lamp_field_users': [],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1101',
-        'device_type': 'Polycom_VVX101',
-        'device_username': 'IPVE-1101',
-        'first_name': 'IPVE Lab',
-        'last_name': '1101',
-        'extension': '1101',
-        'line_port': 'IPVE_LAB1_1101@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1102', 'line_port': 'IPVE_LAB1_1101_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1103', 'line_port': 'IPVE_LAB1_1101_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1104', 'IPVE_LAB1_1105', 'IPVE_LAB1_1106',
-                                  'IPVE_LAB1_1107', 'IPVE_LAB1_1108'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1102',
-        'device_type': 'Polycom_VVX201',
-        'device_username': 'IPVE-1102',
-        'first_name': 'IPVE Lab',
-        'last_name': '1102',
-        'extension': '1102',
-        'line_port': 'IPVE_LAB1_1102@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1103', 'line_port': 'IPVE_LAB1_1102_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1104', 'line_port': 'IPVE_LAB1_1102_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1101', 'IPVE_LAB1_1105', 'IPVE_LAB1_1106',
-                                  'IPVE_LAB1_1107', 'IPVE_LAB1_1108'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1103',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-1103',
-        'first_name': 'IPVE Lab',
-        'last_name': '1103',
-        'extension': '1103',
-        'line_port': 'IPVE_LAB1_1103@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1104', 'line_port': 'IPVE_LAB1_1103_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1105', 'line_port': 'IPVE_LAB1_1103_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1101', 'IPVE_LAB1_1102', 'IPVE_LAB1_1106',
-                                  'IPVE_LAB1_1107', 'IPVE_LAB1_1108'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1104',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-1104',
-        'first_name': 'IPVE Lab',
-        'last_name': '1104',
-        'extension': '1104',
-        'line_port': 'IPVE_LAB1_1104@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1105', 'line_port': 'IPVE_LAB1_1104_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1106', 'line_port': 'IPVE_LAB1_1104_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1101', 'IPVE_LAB1_1102', 'IPVE_LAB1_1103',
-                                  'IPVE_LAB1_1107', 'IPVE_LAB1_1108'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1105',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-1105',
-        'first_name': 'IPVE Lab',
-        'last_name': '1105',
-        'extension': '1105',
-        'line_port': 'IPVE_LAB1_1105@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1106', 'line_port': 'IPVE_LAB1_1105_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1107', 'line_port': 'IPVE_LAB1_1105_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1101', 'IPVE_LAB1_1102', 'IPVE_LAB1_1103',
-                                  'IPVE_LAB1_1104', 'IPVE_LAB1_1108'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1106',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-1106',
-        'first_name': 'IPVE Lab',
-        'last_name': '1106',
-        'extension': '1106',
-        'line_port': 'IPVE_LAB1_1106@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1107', 'line_port': 'IPVE_LAB1_1106_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1108', 'line_port': 'IPVE_LAB1_1106_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1101', 'IPVE_LAB1_1102', 'IPVE_LAB1_1103',
-                                  'IPVE_LAB1_1104', 'IPVE_LAB1_1105'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1107',
-        'device_type': 'Polycom_VVX500',
-        'device_username': 'IPVE-1107',
-        'first_name': 'IPVE Lab',
-        'last_name': '1107',
-        'extension': '1107',
-        'line_port': 'IPVE_LAB1_1107@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1108', 'line_port': 'IPVE_LAB1_1107_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1101', 'line_port': 'IPVE_LAB1_1107_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1102', 'IPVE_LAB1_1103', 'IPVE_LAB1_1104',
-                                  'IPVE_LAB1_1105', 'IPVE_LAB1_1106'],
-    },
-    {
-        'group_id': 'IPVE_LAB1',
-        'user_id': 'IPVE_LAB1_1108',
-        'device_type': 'Polycom_VVX600',
-        'device_username': 'IPVE-1108',
-        'first_name': 'IPVE Lab',
-        'last_name': '1108',
-        'extension': '1108',
-        'line_port': 'IPVE_LAB1_1108@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB1_1101', 'line_port': 'IPVE_LAB1_1108_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB1_1102', 'line_port': 'IPVE_LAB1_1108_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB1_1103', 'IPVE_LAB1_1104', 'IPVE_LAB1_1105',
-                                  'IPVE_LAB1_1106', 'IPVE_LAB1_1107'],
-    },
+
     # Group 2
     {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2001',
-        #'device_type': 'Polycom_VVX300',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2001',
-        'first_name': 'IPVE Lab',
+        'group_id': '0301_LAB2',
+        'user_id': '0301_LAB2_2001',
+        'device_type': 'Generic SIP Phone',
+        'device_username': '301-2001',
+        'first_name': '301 Lab',
         'last_name': '2001',
         'extension': '2001',
-        'line_port': 'IPVE_LAB2_2001@telapexinc.com',
+        'line_port': '0301_LAB__2_2001@lab.impulsevoip.net',
         'service_pack': 'IPVComplete',
+        'assigned_services': ['Authentication'],
         'appearances': [
-            { 'user_id': 'IPVE_LAB2_2002', 'line_port': 'IPVE_LAB2_2001_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2003', 'line_port': 'IPVE_LAB2_2001_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2004', 'IPVE_LAB2_2005', 'IPVE_LAB2_2006',
-                                  'IPVE_LAB2_2007', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
+            { 'user_id': '0301_LAB2_2002', 'line_port': '0301_LAB__2_2001_1@lab.impulsevoip.net' },
+            { 'user_id': '0301_LAB2_2003', 'line_port': '0301_LAB__2_2001_2@lab.impulsevoip.net' }],
+        'busy_lamp_field_users': ['0301_LAB2_2004', '0301_LAB2_2005', '0301_LAB2_2006',
+                                  '0301_LAB2_2007', '0301_LAB2_2008', '0301_LAB2_2009',
+                                  '0301_LAB2_2010'],
     },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2002',
-        # 'device_type': 'Polycom_VVX300',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2002',
-        'first_name': 'IPVE Lab',
-        'last_name': '2002',
-        'extension': '2002',
-        'line_port': 'IPVE_LAB2_2002@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2003', 'line_port': 'IPVE_LAB2_2002_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2004', 'line_port': 'IPVE_LAB2_2002_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2005', 'IPVE_LAB2_2006',
-                                  'IPVE_LAB2_2007', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2003',
-        # 'device_type': 'Polycom_VVX400',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2003',
-        'first_name': 'IPVE Lab',
-        'last_name': '2003',
-        'extension': '2003',
-        'line_port': 'IPVE_LAB2_2003@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2004', 'line_port': 'IPVE_LAB2_2003_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2005', 'line_port': 'IPVE_LAB2_2003_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2006',
-                                  'IPVE_LAB2_2007', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2004',
-        # 'device_type': 'Polycom_VVX400',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2004',
-        'first_name': 'IPVE Lab',
-        'last_name': '2004',
-        'extension': '2004',
-        'line_port': 'IPVE_LAB2_2004@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2005', 'line_port': 'IPVE_LAB2_2004_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2006', 'line_port': 'IPVE_LAB2_2004_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                                  'IPVE_LAB2_2007', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2005',
-        # 'device_type': 'Polycom_VVX500',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2005',
-        'first_name': 'IPVE Lab',
-        'last_name': '2005',
-        'extension': '2005',
-        'line_port': 'IPVE_LAB2_2005@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2006', 'line_port': 'IPVE_LAB2_2005_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2007', 'line_port': 'IPVE_LAB2_2005_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                                  'IPVE_LAB2_2004', 'IPVE_LAB2_2008', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2006',
-        # 'device_type': 'Polycom_VVX600',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2006',
-        'first_name': 'IPVE Lab',
-        'last_name': '2006',
-        'extension': '2006',
-        'line_port': 'IPVE_LAB2_2006@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2007', 'line_port': 'IPVE_LAB2_2006_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2008', 'line_port': 'IPVE_LAB2_2006_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                                  'IPVE_LAB2_2004', 'IPVE_LAB2_2005', 'IPVE_LAB2_2009',
-                                  'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2007',
-        # 'device_type': 'Polycom_IP335',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2007',
-        'first_name': 'IPVE Lab',
-        'last_name': '2007',
-        'extension': '2007',
-        'line_port': 'IPVE_LAB2_2007@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2008', 'line_port': 'IPVE_LAB2_2007_1@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                                  'IPVE_LAB2_2004', 'IPVE_LAB2_2005', 'IPVE_LAB2_2006',
-                                  'IPVE_LAB2_2009', 'IPVE_LAB2_2010'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2008',
-        # 'device_type': 'Polycom_IP450',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2008',
-        'first_name': 'IPVE Lab',
-        'last_name': '2008',
-        'extension': '2008',
-        'line_port': 'IPVE_LAB2_2008@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2009', 'line_port': 'IPVE_LAB2_2008_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2010', 'line_port': 'IPVE_LAB2_2008_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2001', 'IPVE_LAB2_2002', 'IPVE_LAB2_2003',
-                                  'IPVE_LAB2_2004', 'IPVE_LAB2_2005', 'IPVE_LAB2_2006',
-                                  'IPVE_LAB2_2007'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2009',
-        # 'device_type': 'Polycom_IP550',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2009',
-        'first_name': 'IPVE Lab',
-        'last_name': '2009',
-        'extension': '2009',
-        'line_port': 'IPVE_LAB2_2009@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2010', 'line_port': 'IPVE_LAB2_2009_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2001', 'line_port': 'IPVE_LAB2_2009_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2002', 'IPVE_LAB2_2003', 'IPVE_LAB2_2004',
-                                  'IPVE_LAB2_2005', 'IPVE_LAB2_2006', 'IPVE_LAB2_2007',
-                                  'IPVE_LAB2_2008'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2010',
-        # 'device_type': 'Polycom_IP650',
-        'device_type': 'Polycom',
-        'device_username': 'IPVE-2010',
-        'first_name': 'IPVE Lab',
-        'last_name': '2010',
-        'extension': '2010',
-        'line_port': 'IPVE_LAB2_2010@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-            { 'user_id': 'IPVE_LAB2_2001', 'line_port': 'IPVE_LAB2_2010_1@telapexinc.com' },
-            { 'user_id': 'IPVE_LAB2_2002', 'line_port': 'IPVE_LAB2_2010_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2003', 'IPVE_LAB2_2004', 'IPVE_LAB2_2005',
-                                  'IPVE_LAB2_2006', 'IPVE_LAB2_2007', 'IPVE_LAB2_2008',
-                                  'IPVE_LAB2_2009'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2011',
-        'device_type': 'Polycom-conf',
-        'device_username': 'IPVE-2011',
-        'first_name': 'IPVE Lab',
-        'last_name': '2011',
-        'extension': '2011',
-        'line_port': 'IPVE_LAB2_2011@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [],
-        'busy_lamp_field_users': [],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2101',
-        'device_type': 'Polycom_VVX101',
-        'device_username': 'IPVE-2101',
-        'first_name': 'IPVE Lab',
-        'last_name': '2101',
-        'extension': '2101',
-        'line_port': 'IPVE_LAB2_2101@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2102', 'line_port': 'IPVE_LAB2_2101_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2103', 'line_port': 'IPVE_LAB2_2101_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2104', 'IPVE_LAB2_2105', 'IPVE_LAB2_2106',
-                                  'IPVE_LAB2_2107', 'IPVE_LAB2_2108'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2102',
-        'device_type': 'Polycom_VVX201',
-        'device_username': 'IPVE-2102',
-        'first_name': 'IPVE Lab',
-        'last_name': '2102',
-        'extension': '2102',
-        'line_port': 'IPVE_LAB2_2102@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2103', 'line_port': 'IPVE_LAB2_2102_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2104', 'line_port': 'IPVE_LAB2_2102_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2101', 'IPVE_LAB2_2105', 'IPVE_LAB2_2106',
-                                  'IPVE_LAB2_2107', 'IPVE_LAB2_2108'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2103',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-2103',
-        'first_name': 'IPVE Lab',
-        'last_name': '2103',
-        'extension': '2103',
-        'line_port': 'IPVE_LAB2_2103@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2104', 'line_port': 'IPVE_LAB2_2103_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2105', 'line_port': 'IPVE_LAB2_2103_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2101', 'IPVE_LAB2_2102', 'IPVE_LAB2_2106',
-                                  'IPVE_LAB2_2107', 'IPVE_LAB2_2108'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2104',
-        'device_type': 'Polycom_VVX300',
-        'device_username': 'IPVE-2104',
-        'first_name': 'IPVE Lab',
-        'last_name': '2104',
-        'extension': '2104',
-        'line_port': 'IPVE_LAB2_2104@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2105', 'line_port': 'IPVE_LAB2_2104_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2106', 'line_port': 'IPVE_LAB2_2104_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2101', 'IPVE_LAB2_2102', 'IPVE_LAB2_2103',
-                                  'IPVE_LAB2_2107', 'IPVE_LAB2_2108'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2105',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-2105',
-        'first_name': 'IPVE Lab',
-        'last_name': '2105',
-        'extension': '2105',
-        'line_port': 'IPVE_LAB2_2105@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2106', 'line_port': 'IPVE_LAB2_2105_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2107', 'line_port': 'IPVE_LAB2_2105_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2101', 'IPVE_LAB2_2102', 'IPVE_LAB2_2103',
-                                  'IPVE_LAB2_2104', 'IPVE_LAB2_2108'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2106',
-        'device_type': 'Polycom_VVX400',
-        'device_username': 'IPVE-2106',
-        'first_name': 'IPVE Lab',
-        'last_name': '2106',
-        'extension': '2106',
-        'line_port': 'IPVE_LAB2_2106@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2107', 'line_port': 'IPVE_LAB2_2106_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2108', 'line_port': 'IPVE_LAB2_2106_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2101', 'IPVE_LAB2_2102', 'IPVE_LAB2_2103',
-                                  'IPVE_LAB2_2104', 'IPVE_LAB2_2105'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2107',
-        'device_type': 'Polycom_VVX500',
-        'device_username': 'IPVE-2107',
-        'first_name': 'IPVE Lab',
-        'last_name': '2107',
-        'extension': '2107',
-        'line_port': 'IPVE_LAB2_2107@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2108', 'line_port': 'IPVE_LAB2_2107_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2101', 'line_port': 'IPVE_LAB2_2107_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2102', 'IPVE_LAB2_2103', 'IPVE_LAB2_2104',
-                                  'IPVE_LAB2_2105', 'IPVE_LAB2_2106'],
-    },
-    {
-        'group_id': 'IPVE_LAB2',
-        'user_id': 'IPVE_LAB2_2108',
-        'device_type': 'Polycom_VVX600',
-        'device_username': 'IPVE-2108',
-        'first_name': 'IPVE Lab',
-        'last_name': '2108',
-        'extension': '2108',
-        'line_port': 'IPVE_LAB1_2108@telapexinc.com',
-        'service_pack': 'IPVComplete',
-        'appearances': [
-                { 'user_id': 'IPVE_LAB2_2101', 'line_port': 'IPVE_LAB2_2108_1@telapexinc.com' },
-                { 'user_id': 'IPVE_LAB2_2102', 'line_port': 'IPVE_LAB2_2108_2@telapexinc.com' }],
-        'busy_lamp_field_users': ['IPVE_LAB2_2103', 'IPVE_LAB2_2104', 'IPVE_LAB2_2105',
-                                  'IPVE_LAB2_2106', 'IPVE_LAB2_2107'],
-    },
+
 ]
 
 

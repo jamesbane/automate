@@ -12,31 +12,30 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import json
-#import ldap
+# import ldap
 import string
 import random
 import logging
 import dj_database_url
-from decouple import config
 
-#from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+# from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 
 #
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#SETTINGS_FILE = os.path.abspath(os.path.join(BASE_DIR, "settings.json"))
-#if os.path.isfile(SETTINGS_FILE):
- #   with open(SETTINGS_FILE) as f:
- #       env = json.loads(f.read())
-#else:
- #   raise Exception('Could not open settings.json')
+# SETTINGS_FILE = os.path.abspath(os.path.join(BASE_DIR, "settings.json"))
+# if os.path.isfile(SETTINGS_FILE):
+#   with open(SETTINGS_FILE) as f:
+#       env = json.loads(f.read())
+# else:
+#   raise Exception('Could not open settings.json')
 
 
 # =====================================
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = True
+DEBUG = False
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -78,6 +77,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'sniplates',
+    'widget_tweaks',
+    'django_extensions'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,13 +86,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'automate.middleware.TimezoneMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    
+
 ]
 ROOT_URLCONF = 'automate.urls'
 TEMPLATES = [
@@ -111,7 +112,6 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'automate.wsgi.application'
 
-
 # =====================================
 # Authentication
 # =====================================
@@ -127,7 +127,7 @@ AUTHENTICATION_BACKENDS = [
 # =====================================
 # Database
 # =====================================
-#DATABASES = {
+# DATABASES = {
 #    'default': {
 #        'ENGINE': env['database']['engine'],
 #        'NAME': env['database']['db_name'],
@@ -137,33 +137,44 @@ AUTHENTICATION_BACKENDS = [
 #        'PORT': env['database']['port'],
 # 
 #    }
-#}
+# }
 if not DEBUG:
-    DATABASES = {'default': dj_database_url.config()}
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'd10q8ccdiidlvq',
+            'USER': 'qhyghmxpdmyail',
+            'PASSWORD': '8789966b1ae854a0f2ec0f84e411afaf1bce869aef1baa14b6864c90938fb824',
+            'HOST': 'ec2-18-214-211-47.compute-1.amazonaws.com',
+            'PORT': '5432',
+        }
+    }
 else:
     DATABASES = {
-    #'default': {
-    #        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #        'NAME': config('DB_NAME'),
-    #        'USER': config('DB_USER'),
-    #        'PASSWORD': config('DB_PASSWORD'),
-    #        'HOST': config('DB_HOST'),
-    #        'PORT': config('DB_PORT')
-    #    }
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'toolbox',
-        'USER': 'toolbox',
-        'PASSWORD': 'Layerstack1!',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'toolbox',
+            'USER': 'toolbox',
+            'PASSWORD': 'Layerstack1!',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
-
+#
+# DATABASES = {
+# 'default': {
+#     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#     'NAME': 'postgres',
+#     'USER': 'postgres',
+#     'PASSWORD': 'postgres',
+#     'HOST': 'localhost',
+#     'PORT': '5432',
+# }
+# }
 # =====================================
 # Platforms
 # =====================================
-#PLATFORMS = env['platforms']
+# PLATFORMS = env['platforms']
 
 
 # =====================================
@@ -184,7 +195,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # =====================================
 # Where to redirect after login (and no next reference)
 # =====================================
@@ -192,8 +202,6 @@ LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
 LOGOUT_URL = "/accounts/logout/"
 LOGOUT_REDIRECT_URL = '/accounts/login/'
-
-
 
 # =====================================
 # Internationalization
@@ -203,7 +211,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
 
 # =====================================
 # Static files (CSS, JavaScript, Images)
@@ -217,14 +224,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '{}/media/'.format(BASE_DIR)
 PROTECTED_URL = '/protected/'
 PROTECTED_ROOT = '{}/protected/'.format(BASE_DIR)
-#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # =====================================
@@ -257,7 +264,6 @@ RQ_QUEUES = {
 #    },
 '''}'''
 
-
 # =====================================
 # Django REST Framework
 # =====================================
@@ -267,12 +273,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
-    #added django_filters.rest_framework.DjangoFilterBackend'
-    #after installing django_filters
+    # added django_filters.rest_framework.DjangoFilterBackend'
+    # after installing django_filters
     # and removed 'rest_framework.filters.DjangoFilterBackend',
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
-        
+
         'rest_framework.filters.OrderingFilter',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -282,6 +288,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 1000,
 }
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # =====================================
 # Email

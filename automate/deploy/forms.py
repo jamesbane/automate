@@ -7,7 +7,7 @@ from deploy.models import Site, Device
 
 # Third Party
 from lib.pyutil.util import Util
-from lib.pybw.broadworks import BroadWorks, Nil
+from lib.bw.broadworks import BroadWorks, Nil
 
 
 class SiteCreateForm(forms.ModelForm):

@@ -5,17 +5,14 @@
 {% block tool_content %}
   {% load_widgets form="widgets/form.html" %}
   {% load_widgets formset="tools/form_widget_configurator.html" %}
-  <h1 class="page-header">
-    <div class="pull-right">
-      <button class="number-add btn btn-default" data-toggle="modal" data-target="#import_parameters"><i class="fa fa-fw fa-code"></i> Import</button>
-    </div>
-    Speed Dial Configurator
-  </h1>
+  <div class="card-header justify-content-between">
+    <h2>Speed Dial Configurator</h2>
+  </div>
   <div>
     <h2 class="text-primary"><i class="fa fa-info"></i> Documentation</h2>
     <p>Configures SpeedDial100 for users in an Enterprise or Group (individually per user) and overwrites the values.</p>
 
-    <h2 class="text-danger"><i class="fa fa-warning"></i> </h2>
+
     <div class=" well">
       <div id="id_form_template" style="display:none;">
         {% with formset.empty_form as f %}
