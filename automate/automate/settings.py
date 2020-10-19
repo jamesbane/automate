@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = False
+DEBUG = True
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
