@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = True
+DEBUG = False
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -312,7 +312,10 @@ MANAGERS = ADMINS'''
 CELERY_TIMEZONE = "UTC"
 CELERY_ENABLE_UTC = True
 CELERY_TASK_TRACK_STARTED = True
-CELERY_BROKER_URL = "redis://localhost:6379"
+if not DEBUG:
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+else:
+    CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_CACHE_BACKEND = 'default'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
