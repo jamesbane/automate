@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="card-header justify-content-between">
+        <h2>Reseller Call Count</h2>
+    </div>
+    <div class="card-body">
+        <h4>Summary of actions:</h4>
+        <pre>Choose items and press Search.</pre>
+        <form method="post" id="reseller-form">
+            {% csrf_token %}
+            {% crispy form %}
+            <input type="button" value="Search" class="btn btn-default" onclick="calcCounts()">
+        </form>
+
+        <div id="results" class="row" style="display: none">
+            <div class="col-12">
+                <h4 class="card-title">Max Datas</h4>
+                <table class="table-sm table-bordered table-striped table-hover">
+                    <thead>
+                    <th>Reseller Name</th>
+                    <th>Max Count</th>
+                    </thead>
+                    <tbody id="reports"></tbody>
+                </table>
+            </div>
+            <div class="col-12">
+                <h4 class="card-title">Line Chart</h4>
+                <div id="line_chart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'plugins/amcharts/amcharts.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/amcharts.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/gauge.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/serial.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/themes/light.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/animate.min.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/pie.js' %}"></script>
+    <script src="{% static 'plugins/ammap3/ammap/ammap.js' %}"></script>
+    <script src="{% static 'plugins/ammap3/ammap/maps/js/usaLow.js' %}"></script>
+    {% if form.javascript %}
+        <script src="{{ form.javascript }}"></script>
+    {% endif %}
+
+    <script>
+
+        $(function () {
+            $('.datetimeinput').datetimepicker();
+            $('.datetimeinput').next().click(function () {
+                $(this).prev().datetimepicker('show');
+            });
+        });
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function calcCounts() {
+            $("#reports").empty();
+            datas = $("#reseller-form").serializeArray()
+            request_data = {}
+            $.each(datas, function (i, field) {
+                request_data[field.name] = field.value
+            });
+            $.ajax({
+                data: request_data,
+                type: 'post',
+                success: function (res) {
+                    $("#results").css('display', 'block');
+                    var graphs = [];
+                    var dataProviders = [];
+                    for (let i = 0; i < Object.keys(res['datas']).length; i++) {
+                        territory_id = Object.keys(res['datas'])[i];
+                        territory_data = res['datas'][territory_id];
+                        max_count = 0;
+                        for (let j = 0; j < territory_data.length; j++) {
+                            if (max_count < territory_data[j]['count']) {
+                                max_count = territory_data[j]['count'];
+                            }
+                            if (!dataProviders[j]) {
+                                dataProviders[j] = {}
+                            }
+                            dataProviders[j][territory_data[j]['name']] = territory_data[j]['count'];
+                            dataProviders[j]['datetime'] = territory_data[j]['created_at'];
+                        }
+                        graphs.push({
+                            "id": territory_id,
+                            "valueAxis": "v2",
+                            "bullet": "round",
+                            "bulletBorderAlpha": 1,
+                            "bulletColor": "#FFFFFF",
+                            "bulletSize": 8,
+                            "hideBulletsCount": 50,
+                            "lineThickness": 3,
+                            "lineColor": getRandomColor(),
+                            "title": territory_data[0]['name'],
+                            "useLineColorForBulletBorder": true,
+                            "valueField": territory_data[0]['name'],
+                            "balloonText": "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
+                        });
+                        $("#reports").append("<tr>" +
+                            "<td>" + territory_data[0]['name'] + "</td>" +
+                            "<td>" + max_count + "</td>" +
+                            "</tr>");
+                    }
+
+                    var chart = AmCharts.makeChart("line_chart", {
+                        "type": "serial",
+                        "theme": "light",
+                        "dataDateFormat": "MMM-DD",
+                        "precision": 2,
+                        "valueAxes": [{
+                            "id": "v1",
+                            "position": "left",
+                            "autoGridCount": false
+                        }, {
+                            "id": "v2",
+                            "gridAlpha": 0,
+                            "autoGridCount": false,
+                            "labelFunction": function (value) {
+                                return "$" + Math.round(value) + "M";
+                            }
+                        }],
+                        "graphs": graphs,
+                        "chartCursor": {
+                            "valueLineEnabled": true,
+                            "valueLineBalloonEnabled": true,
+                            "cursorAlpha": 0,
+                            "valueLineAlpha": 0.2
+                        },
+                        "categoryField": "datetime",
+                        "categoryAxis": {
+                            "parseDate": true,
+                            "dashLength": 1,
+                            "minorGridEnabled": true
+                        },
+                        "legend": {
+                            "useGraphSettings": true,
+                            "position": "top"
+                        },
+                        "balloon": {
+                            "borderThickness": 1,
+                            "shadowAlpha": 0
+                        },
+                        "dataProvider": dataProviders
+                    });
+                },
+                fail: function (res) {
+
+                }
+            });
+        }
+    </script>
+{% endblock %}

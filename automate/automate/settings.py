@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Core settings
 # =====================================
 SECRET_KEY = "hdhdhdhdue38939"
-DEBUG = False
+DEBUG = True
 '''if 'secret_key' in env['django']:
     SECRET_KEY = env['django']['secret_key']
 else:
@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'automate',
     'tools',
     'sansayvcm_client',
+    'reseller',
 
     # Third Party
     'crispy_forms',
@@ -78,7 +79,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
     'widget_tweaks',
-    'django_extensions'
+    'django_extensions',
+    'django_celery_results',
+    'django_celery_beat'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -304,3 +307,21 @@ SERVER_EMAIL = env['email']['from_address']
 # =====================================
 ADMINS = env['admins']
 MANAGERS = ADMINS'''
+
+# celery configuration
+CELERY_TIMEZONE = "UTC"
+CELERY_ENABLE_UTC = True
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_CACHE_BACKEND = 'default'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# django setting.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

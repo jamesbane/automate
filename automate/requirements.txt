@@ -40,3 +40,6 @@ suds-jurko==0.6
 urllib3==1.25.9
 whitenoise==5.2.0
 zipp==3.1.0
+celery==4.4.7
+django-celery-results==1.2.1
+django-celery-beat==2.0.0

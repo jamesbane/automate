@@ -21,6 +21,7 @@ urlpatterns = [
     re_path(r'^dms/', include('dms.urls', )),
     re_path(r'^routing/', include('routing.urls', )),
     re_path(r'^tools/', include('tools.urls',),name='tools-url'),
+    re_path(r'^reseller/', include('reseller.urls',), name='reseller-url'),
     re_path(r'^protected/(?P<path>.*)$', automate.views.ProtectedFileView.as_view()),
     re_path(r'^sansay/', include('sansayvcm_client.urls',)),
 
