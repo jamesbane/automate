@@ -9,9 +9,9 @@ class CallCountForm(forms.Form):
     reseller_names = forms.CharField(label='Reseller Names',
                                      widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
                                      required=False)
-    start_datetime = forms.DateTimeField(label='Start Datetime', required=False,
+    start_datetime = forms.DateTimeField(label='Start Date Time', required=False,
                                          input_formats=['%Y/%m/%d %H:%M'])
-    end_datetime = forms.DateTimeField(label='End Datetime', required=False,
+    end_datetime = forms.DateTimeField(label='End Date Time', required=False,
                                        input_formats=['%Y/%m/%d %H:%M'])
 
     def __init__(self, *args, **kwargs):
