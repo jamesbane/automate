@@ -11,22 +11,36 @@
         <pre>Choose items and press Search.</pre>
         <div class="form-group">
             <form method="post" id="reseller-form">
-                {% csrf_token %}
                 {% crispy form %}
                 <input type="button" value="Search" class="btn btn-default" onclick="calcCounts()">
             </form>
         </div>
 
+        <div id="no-results" class="bg-info" style="display: none">
+            <h6 class="text-center pt-15 pb-15">No results found</h6>
+        </div>
+
         <div id="results" class="row" style="display: none">
-            <div class="col-12 form-group">
-                <h4 class="card-title">Max Calls in range</h4>
-                <table class="table-sm table-bordered table-striped table-hover">
-                    <thead>
-                    <th>Reseller Name</th>
-                    <th>Max Count</th>
-                    </thead>
-                    <tbody id="reports"></tbody>
-                </table>
+            <div class="form-group col-12">
+                <div class="row">
+                    <div class="col-9">
+                        <h4 class="card-title">Max Datas</h4>
+                        <table class="table-sm table-bordered table-striped table-hover">
+                            <thead>
+                            <th>Reseller Name</th>
+                            <th>Sum Plot</th>
+                            <th>Max Count</th>
+                            <th>Datetime</th>
+                            </thead>
+                            <tbody id="reports"></tbody>
+                        </table>
+                    </div>
+                    <div class="col-3 text-right">
+                        <button class="btn btn-success float-right" onclick="exportCSV()"><i class="fa fa-download"></i>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="col-12 form-group">
                 <h4 class="card-title">Line Chart</h4>
@@ -65,98 +79,127 @@
             return color;
         }
 
+        function exportCSV() {
+            datas = $("#reseller-form").serializeArray()
+            $.ajax({
+                data: datas,
+                type: 'post',
+                url: "{% url 'reseller:export-csv' %}",
+                success: function (res) {
+                    var element = document.createElement('a');
+                    element.href = 'data:text/csv;charset=utf-8,' + encodeURI(res);
+                    element.target = '_blank';
+                    var now = new Date();
+                    let formattedDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getHours() + "-" + now.getMinutes() + "-" + now.getSeconds();
+                    element.download = 'reseller_count_' + formattedDate + '.csv';
+                    element.click();
+                },
+                fail: function (res) {
+                }
+            });
+        }
+
         function calcCounts() {
             $("#reports").empty();
             datas = $("#reseller-form").serializeArray()
             request_data = {}
-            $.each(datas, function (i, field) {
-                request_data[field.name] = field.value
-            });
             $.ajax({
-                data: request_data,
+                data: datas,
                 type: 'post',
                 success: function (res) {
-                    $("#results").css('display', 'block');
-                    var graphs = [];
-                    var dataProviders = [];
-                    for (let i = 0; i < Object.keys(res['datas']).length; i++) {
-                        territory_id = Object.keys(res['datas'])[i];
-                        territory_data = res['datas'][territory_id];
-                        max_count = 0;
-                        for (let j = 0; j < territory_data.length; j++) {
-                            if (max_count < territory_data[j]['count']) {
-                                max_count = territory_data[j]['count'];
+                    if (res['status'] == 'success') {
+                        $("#no-results").css('display', 'none');
+                        $("#results").css('display', 'block');
+                        var graphs = [];
+                        var dataProviders = [];
+                        for (let i = 0; i < Object.keys(res['datas']).length; i++) {
+                            territory_id = Object.keys(res['datas'])[i];
+                            territory_data = res['datas'][territory_id];
+                            max_count = 0;
+                            sum_count = 0;
+                            max_date = '';
+                            for (let j = 0; j < territory_data.length; j++) {
+                                sum_count += territory_data[j]['count'];
+                                if (max_count < territory_data[j]['count']) {
+                                    max_count = territory_data[j]['count'];
+                                    max_date = territory_data[j]['created_at'];
+                                }
+                                if (!dataProviders[j]) {
+                                    dataProviders[j] = {}
+                                }
+                                dataProviders[j][territory_data[j]['name']] = territory_data[j]['count'];
+                                dataProviders[j]['datetime'] = territory_data[j]['created_at'];
                             }
-                            if (!dataProviders[j]) {
-                                dataProviders[j] = {}
-                            }
-                            dataProviders[j][territory_data[j]['name']] = territory_data[j]['count'];
-                            dataProviders[j]['datetime'] = territory_data[j]['created_at'];
+                            graphs.push({
+                                "id": territory_id,
+                                "valueAxis": "v1",
+                                "bullet": "round",
+                                "bulletBorderAlpha": 1,
+                                "bulletColor": "#FFFFFF",
+                                "bulletSize": 8,
+                                "lineThickness": 3,
+                                "lineColor": getRandomColor(),
+                                "title": territory_data[0]['name'],
+                                "useLineColorForBulletBorder": true,
+                                "valueField": territory_data[0]['name'],
+                                "balloonText": "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
+                            });
+                            $("#reports").append("<tr>" +
+                                "<td>" + territory_data[0]['name'] + "</td>" +
+                                "<td>" + sum_count + "</td>" +
+                                "<td>" + max_count + "</td>" +
+                                "<td>" + max_date + "</td>" +
+                                "</tr>");
                         }
-                        graphs.push({
-                            "id": territory_id,
-                            "valueAxis": "v1",
-                            "bullet": "round",
-                            "bulletBorderAlpha": 1,
-                            "bulletColor": "#FFFFFF",
-                            "bulletSize": 8,
-                            "lineThickness": 3,
-                            "lineColor": getRandomColor(),
-                            "title": territory_data[0]['name'],
-                            "useLineColorForBulletBorder": true,
-                            "valueField": territory_data[0]['name'],
-                            "balloonText": "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
-                        });
-                        $("#reports").append("<tr>" +
-                            "<td>" + territory_data[0]['name'] + "</td>" +
-                            "<td>" + max_count + "</td>" +
-                            "</tr>");
-                    }
 
-                    var chart = AmCharts.makeChart("line_chart", {
-                        "type": "serial",
-                        "theme": "light",
-                        "dataDateFormat": "MMM-DD",
-                        "precision": 2,
-                        "dataProvider": dataProviders,
-                        "valueAxes": [{
-                            "id": "v1",
-                            "position": "left",
-                            "autoGridCount": false
-                        }, {
-                            "id": "v2",
-                            "gridAlpha": 0,
-                            "autoGridCount": false
-                        }],
-                        "graphs": graphs,
-                        "chartCursor": {
-                            "valueLineEnabled": true,
-                            "valueLineBalloonEnabled": true,
-                            "cursorAlpha": 0,
-                            "valueLineAlpha": 0.2
-                        },
-                        "categoryField": "datetime",
-                        "categoryAxis": {
-                            "parseDates": false,
-                            "axisAlpha": 0,
-                            "lineAlpha": 0,
-                            "gridAlpha": 0,
-                            "minorGridEnabled": true,
-                            "autoRotateAngle": 90,
-                            "autoRotateCount": 10
-                        },
-                        "legend": {
-                            "useGraphSettings": true,
-                            "position": "top"
-                        },
-                        "balloon": {
-                            "borderThickness": 1,
-                            "shadowAlpha": 0
-                        },
-                        "export": {
-                            "enabled": true
-                        }
-                    });
+                        var chart = AmCharts.makeChart("line_chart", {
+                            "type": "serial",
+                            "theme": "light",
+                            "dataDateFormat": "MMM-DD",
+                            "precision": 2,
+                            "dataProvider": dataProviders,
+                            "valueAxes": [{
+                                "id": "v1",
+                                "position": "left",
+                                "autoGridCount": false
+                            }, {
+                                "id": "v2",
+                                "gridAlpha": 0,
+                                "autoGridCount": false
+                            }],
+                            "graphs": graphs,
+                            "chartCursor": {
+                                "valueLineEnabled": true,
+                                "valueLineBalloonEnabled": true,
+                                "cursorAlpha": 0,
+                                "valueLineAlpha": 0.2
+                            },
+                            "categoryField": "datetime",
+                            "categoryAxis": {
+                                "parseDates": false,
+                                "axisAlpha": 0,
+                                "lineAlpha": 0,
+                                "gridAlpha": 0,
+                                "minorGridEnabled": true,
+                                "autoRotateAngle": 90,
+                                "autoRotateCount": 10
+                            },
+                            "legend": {
+                                "useGraphSettings": true,
+                                "position": "top"
+                            },
+                            "balloon": {
+                                "borderThickness": 1,
+                                "shadowAlpha": 0
+                            },
+                            "export": {
+                                "enabled": true
+                            }
+                        });
+                    } else {
+                        $("#no-results").css('display', 'block');
+                        $("#results").css('display', 'none');
+                    }
                 },
                 fail: function (res) {
 

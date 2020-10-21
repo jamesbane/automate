@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Register your models here.
+from reseller.forms import ResellerPlatformForm
+from reseller.models import ResellerPlatform
+
+
+@admin.register(ResellerPlatform)
+class BroadworksPlatformAdmin(admin.ModelAdmin):
+    form = ResellerPlatformForm

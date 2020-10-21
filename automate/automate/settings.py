@@ -81,7 +81,8 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django_extensions',
     'django_celery_results',
-    'django_celery_beat'
+    'django_celery_beat',
+    'django_select2'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -324,7 +325,15 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'my_cache_table',
+    },
+    "select2": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
+SELECT2_CACHE_BACKEND = "select2"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

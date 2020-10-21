@@ -1,25 +1,28 @@
+import csv
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponseRedirect
-from django.urls import reverse
-from django.utils.datetime_safe import datetime
-from django.views import View
+from django.http import JsonResponse, HttpResponse
 from django.views.generic import FormView
 
 from reseller.forms import CallCountForm
 from reseller.models import ResellerCount
-from reseller.tasks import reseller_count
 
 
 class CallCountFormView(LoginRequiredMixin, FormView):
     template_name = 'reseller/call_count_form.html'
     form_class = CallCountForm
 
+    def get_form_kwargs(self):
+        kwargs = super(CallCountFormView, self).get_form_kwargs()
+        kwargs['user_id'] = self.request.user.id
+        return kwargs
+
     def form_valid(self, form):
-        return super(self).form_valid(form)
+        return super(CallCountFormView, self).form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        form = CallCountForm(request.POST)
+        form = CallCountForm(request.POST, user_id=request.user.id)
         select_all = False
         reseller_names = ''
         start_datetime = None
@@ -33,8 +36,9 @@ class CallCountFormView(LoginRequiredMixin, FormView):
             print(form.errors)
 
         q = Q()
-        if reseller_names != '' and not select_all:
-            name_array = [name.strip() for name in reseller_names.split(',')]
+        q.add(Q(customer__in=request.user.groups.all()), Q.AND)
+        if len(reseller_names) > 0 and not select_all:
+            name_array = [name.strip() for name in reseller_names]
             q.add(Q(territory_name__in=name_array), Q.AND)
         if start_datetime is not None:
             q.add(Q(created_at__gt=start_datetime), Q.AND)
@@ -52,11 +56,60 @@ class CallCountFormView(LoginRequiredMixin, FormView):
                 'created_at': item.created_at.strftime("%Y-%m-%d %H:%M")
             })
         return JsonResponse({
+            'status': 'success' if len(items) > 0 else 'error',
             'datas': datas
         })
 
-    def get(self, request, *args, **kwargs):
-        # reseller_count.apply_async(kwargs={
-        #     'user_id': self.request.user.id
-        # })
-        return super().get(request, *args, **kwargs)
+
+class ExportCSVFormView(LoginRequiredMixin, FormView):
+    form_class = CallCountForm
+
+    def post(self, request, *args, **kwargs):
+        form = CallCountForm(request.POST, user_id=request.user.id)
+        select_all = False
+        reseller_names = ''
+        start_datetime = None
+        end_datetime = None
+        if form.is_valid():
+            select_all = form.cleaned_data['select_all']
+            reseller_names = form.cleaned_data['reseller_names']
+            start_datetime = form.cleaned_data['start_datetime']
+            end_datetime = form.cleaned_data['end_datetime']
+        else:
+            print(form.errors)
+
+        q = Q()
+        q.add(Q(customer__in=request.user.groups.all()), Q.AND)
+        if len(reseller_names) > 0 and not select_all:
+            name_array = [name.strip() for name in reseller_names]
+            q.add(Q(territory_name__in=name_array), Q.AND)
+        if start_datetime is not None:
+            q.add(Q(created_at__gt=start_datetime), Q.AND)
+        if end_datetime is not None:
+            q.add(Q(created_at__lt=end_datetime), Q.AND)
+
+        items = ResellerCount.objects.filter(q).all()
+        datas = {}
+        for item in items:
+            if item.territory_id not in datas:
+                datas[item.territory_id] = {
+                    'name': item.territory_name,
+                    'max_count': item.count_external,
+                    'sum_count': item.count_external,
+                    'max_date': item.created_at.strftime("%Y-%m-%d %H:%M") if item.count_external > 0 else ''
+                }
+            else:
+                if datas[item.territory_id]['max_count'] < item.count_external:
+                    datas[item.territory_id]['max_count'] = item.count_external
+                    datas[item.territory_id]['max_date'] = item.created_at.strftime("%Y-%m-%d %H:%M")
+                datas[item.territory_id]['sum_count'] += item.count_external
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment;filename="export.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Reseller Name', 'Sum Plot', 'Max Count', 'Max Date'])
+        for key in sorted(datas):
+            writer.writerow(
+                [datas[key]['name'], datas[key]['sum_count'], datas[key]['max_count'], datas[key]['max_date']])
+        return response

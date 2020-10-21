@@ -1,22 +1,35 @@
 import datetime
-import json
 import urllib.parse
 
 import requests
 
+from reseller.models import ResellerPlatform
+
 
 class Netsapiens:
     name = 'Netsapiens'
-    SUPERUSER = "apiuser.maxcall@pressone.net"
-    PASSWORD = "mh3zC&c58z%w8BHa"
-    CLIENTID = "ResellerCallCount"
-    CLIENTSECRET = "83ed3c8fad59e14de4385490a7bf32d4"
+    # SUPERUSER = "apiuser.maxcall@pressone.net"
+    # PASSWORD = "mh3zC&c58z%w8BHa"
+    # CLIENTID = "ResellerCallCount"
+    # CLIENTSECRET = "83ed3c8fad59e14de4385490a7bf32d4"
+
+    SUPERUSER = ''
+    PASSWORD = ''
+    CLIENTID = ''
+    CLIENTSECRET = ''
 
     access_token = ""
     refresh_token = ""
     token_type = ""
     expires_in = 0
     expires_time = None
+
+    def __init__(self, platform_id):
+        self.platform = ResellerPlatform.objects.get(pk=platform_id)
+        self.SUPERUSER = self.platform.username
+        self.PASSWORD = self.platform.password
+        self.CLIENTSECRET = self.platform.client_secret
+        self.CLIENTID = self.platform.client_id
 
     def get_access_token(self):
         token_url = "https://ucportal.pressone.net/ns-api/oauth2/token/?grant_type=%s&client_id=%s&client_secret=%s&username=%s&password=%s" % (
