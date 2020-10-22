@@ -89,27 +89,29 @@ class ExportCSVFormView(LoginRequiredMixin, FormView):
             q.add(Q(created_at__lt=end_datetime), Q.AND)
 
         items = ResellerCount.objects.filter(q).all()
-        datas = {}
-        for item in items:
-            if item.territory_id not in datas:
-                datas[item.territory_id] = {
-                    'name': item.territory_name,
-                    'max_count': item.count_external,
-                    'sum_count': item.count_external,
-                    'max_date': item.created_at.strftime("%Y-%m-%d %H:%M") if item.count_external > 0 else ''
-                }
-            else:
-                if datas[item.territory_id]['max_count'] < item.count_external:
-                    datas[item.territory_id]['max_count'] = item.count_external
-                    datas[item.territory_id]['max_date'] = item.created_at.strftime("%Y-%m-%d %H:%M")
-                datas[item.territory_id]['sum_count'] += item.count_external
+        # datas = {}
+        # for item in items:
+        #     if item.territory_id not in datas:
+        #         datas[item.territory_id] = {
+        #             'name': item.territory_name,
+        #             'max_count': item.count_external,
+        #             'sum_count': item.count_external,
+        #             'max_date': item.created_at.strftime("%Y-%m-%d %H:%M") if item.count_external > 0 else ''
+        #         }
+        #     else:
+        #         if datas[item.territory_id]['max_count'] < item.count_external:
+        #             datas[item.territory_id]['max_count'] = item.count_external
+        #             datas[item.territory_id]['max_date'] = item.created_at.strftime("%Y-%m-%d %H:%M")
+        #         datas[item.territory_id]['sum_count'] += item.count_external
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment;filename="export.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['Reseller Name', 'Sum Plot', 'Max Count', 'Max Date'])
-        for key in sorted(datas):
+        writer.writerow(['No', 'Reseller Name', 'Count', 'Datetime'])
+        index = 1
+        for item in items:
             writer.writerow(
-                [datas[key]['name'], datas[key]['sum_count'], datas[key]['max_count'], datas[key]['max_date']])
+                [index, item.territory_name, item.count_external, item.created_at.strftime("%Y-%m-%d %H:%M")])
+            index += 1
         return response
