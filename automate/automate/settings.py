@@ -143,16 +143,7 @@ AUTHENTICATION_BACKENDS = [
 #    }
 # }
 if not DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'd10q8ccdiidlvq',
-            'USER': 'qhyghmxpdmyail',
-            'PASSWORD': '8789966b1ae854a0f2ec0f84e411afaf1bce869aef1baa14b6864c90938fb824',
-            'HOST': 'ec2-18-214-211-47.compute-1.amazonaws.com',
-            'PORT': '5432',
-        }
-    }
+    DATABASES = {'default': dj_database_url.config()}
 else:
     DATABASES = {
         'default': {
