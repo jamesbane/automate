@@ -46,6 +46,7 @@ class CallCountFormView(LoginRequiredMixin, FormView):
             q.add(Q(created_at__lt=end_datetime), Q.AND)
 
         items = ResellerCount.objects.filter(q).all()
+        count_data = {}
         datas = {}
         for item in items:
             if item.territory_id not in datas:
@@ -53,11 +54,20 @@ class CallCountFormView(LoginRequiredMixin, FormView):
             datas[item.territory_id].append({
                 'name': item.territory_name,
                 'count': item.count_external,
-                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M")
+                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            })
+            if item.created_at.strftime("%Y-%m-%d %H:%M:%S") not in count_data:
+                count_data[item.created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
+            count_data[item.created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
+                'id': item.territory_id,
+                'name': item.territory_name,
+                'count': item.count_external,
+                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
             })
         return JsonResponse({
             'status': 'success' if len(items) > 0 else 'error',
-            'datas': datas
+            'datas': datas,
+            'count_data': count_data
         })
 
 
@@ -89,29 +99,35 @@ class ExportCSVFormView(LoginRequiredMixin, FormView):
             q.add(Q(created_at__lt=end_datetime), Q.AND)
 
         items = ResellerCount.objects.filter(q).all()
-        # datas = {}
-        # for item in items:
-        #     if item.territory_id not in datas:
-        #         datas[item.territory_id] = {
-        #             'name': item.territory_name,
-        #             'max_count': item.count_external,
-        #             'sum_count': item.count_external,
-        #             'max_date': item.created_at.strftime("%Y-%m-%d %H:%M") if item.count_external > 0 else ''
-        #         }
-        #     else:
-        #         if datas[item.territory_id]['max_count'] < item.count_external:
-        #             datas[item.territory_id]['max_count'] = item.count_external
-        #             datas[item.territory_id]['max_date'] = item.created_at.strftime("%Y-%m-%d %H:%M")
-        #         datas[item.territory_id]['sum_count'] += item.count_external
+        datas = {}
+        for item in items:
+            if item.created_at.strftime("%Y-%m-%d %H:%M:%S") not in datas:
+                datas[item.created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
+            datas[item.created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
+                'id': item.territory_id,
+                'name': item.territory_name,
+                'count': item.count_external,
+                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            })
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment;filename="export.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['No', 'Reseller Name', 'Count', 'Datetime'])
+        csv_header = ['No', 'Sum', 'Date/Time']
+        for item in datas[list(datas.keys())[0]]:
+            csv_header.append(item['name'])
+        writer.writerow(csv_header)
         index = 1
-        for item in items:
-            writer.writerow(
-                [index, item.territory_name, item.count_external, item.created_at.strftime("%Y-%m-%d %H:%M")])
+        for key in datas:
+            data = datas[key]
+            csvdata = [index, 0, '']
+            sum_row = 0
+            for item in data:
+                sum_row += item['count']
+                csvdata.append(item['count'])
+            csvdata[1] = sum_row
+            csvdata[2] = key
+            writer.writerow(csvdata)
             index += 1
         return response

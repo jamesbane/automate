@@ -44,7 +44,7 @@
             </div>
             <div class="col-12 form-group">
                 <h4 class="card-title">Line Chart</h4>
-                <div id="line_chart" style="height: 400px;"></div>
+                <div id="line_chart" style="height: 800px;"></div>
             </div>
         </div>
     </div>
@@ -112,18 +112,27 @@
                         $("#results").css('display', 'block');
                         var graphs = [];
                         var dataProviders = [];
+                        var sum_count = 0;
+                        var max_sum = 0;
+                        var max_date = '';
+                        for (let i = 0; i < Object.keys(res['count_data']).length; i++) {
+                            date = Object.keys(res['count_data'])[i];
+                            count_data = res['count_data'][date];
+                            sum_count = 0
+                            for (let j = 0; j < count_data.length; j++) {
+                                sum_count += count_data[j]['count'];
+                            }
+                            if (max_sum < sum_count) {
+                                max_sum = sum_count;
+                                max_date = date;
+                            }
+
+                        }
                         for (let i = 0; i < Object.keys(res['datas']).length; i++) {
                             territory_id = Object.keys(res['datas'])[i];
                             territory_data = res['datas'][territory_id];
-                            max_count = 0;
-                            sum_count = 0;
-                            max_date = '';
                             for (let j = 0; j < territory_data.length; j++) {
                                 sum_count += territory_data[j]['count'];
-                                if (max_count < territory_data[j]['count']) {
-                                    max_count = territory_data[j]['count'];
-                                    max_date = territory_data[j]['created_at'];
-                                }
                                 if (!dataProviders[j]) {
                                     dataProviders[j] = {}
                                 }
@@ -144,6 +153,12 @@
                                 "valueField": territory_data[0]['name'],
                                 "balloonText": "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
                             });
+                            var max_count = 0;
+                            for (let j = 0; j < res['count_data'][max_date].length; j++) {
+                                if (res['count_data'][max_date][j]['id'] == territory_id) {
+                                    max_count = res['count_data'][max_date][j]['count'];
+                                }
+                            }
                             $("#reports").append("<tr>" +
                                 "<td>" + territory_data[0]['name'] + "</td>" +
                                 "<td>" + sum_count + "</td>" +
@@ -161,15 +176,15 @@
                             "valueAxes": [{
                                 "id": "v1",
                                 "position": "left",
-                                "autoGridCount": false
+                                "autoGridCount": true
                             }, {
                                 "id": "v2",
                                 "gridAlpha": 0,
-                                "autoGridCount": false
+                                "autoGridCount": true
                             }],
                             "graphs": graphs,
                             "chartCursor": {
-                                "valueLineEnabled": true,
+                                "valueLineEnabled": false,
                                 "valueLineBalloonEnabled": true,
                                 "cursorAlpha": 0,
                                 "valueLineAlpha": 0.2
@@ -190,7 +205,7 @@
                             },
                             "balloon": {
                                 "borderThickness": 1,
-                                "shadowAlpha": 0
+                                "shadowAlpha": 0,
                             },
                             "export": {
                                 "enabled": true
