@@ -147,7 +147,6 @@
                         <div class="nav-item has-sub {% if '/tools/' in request.get_full_path %} active open {% endif %}">
                             <a href="{% url 'tools:index' %}"><i class="ik ik-box"></i><span>Tools</span></a>
                             <div class="submenu-content">
-                                <a href="" class="menu-item">Basic</a>
                                 {% block tools_list %}{% endblock tools_list %}
                             </div>
                         </div>
