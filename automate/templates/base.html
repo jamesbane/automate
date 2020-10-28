@@ -172,9 +172,12 @@
                         <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
                             <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
                         </div>
-                        <div class="nav-item {% if request.get_full_path == '/reseller/' %} active {% endif %}>">
-                            <a href="{% url 'reseller:call-count' %}"><i class="ik ik-check-circle"></i>Call Count</a>
-                        </div>
+                        {% if user.has_reseller_perms %}
+                            <div class="nav-item {% if request.get_full_path == '/reseller/' %} active {% endif %}>">
+                                <a href="{% url 'reseller:call-count' %}"><i class="ik ik-check-circle"></i>Call
+                                    Count</a>
+                            </div>
+                        {% endif %}
                     </nav>
                 </div>
             </div>
