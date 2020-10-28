@@ -8,7 +8,12 @@
     </div>
     <div class="card-body">
         <h4>Summary of actions:</h4>
-        <pre>Choose items and press Search.</pre>
+        <pre>
+    Choose a Reseller or Resellers and Search
+    The active call counts will be displayed for the selected Resellers within the Date/Time range input.
+    The data point that has the MAX calls within the range of all selected Resellers will be displayed in the table.
+    You can also export all data points within the range.
+        </pre>
         <div class="form-group">
             <form method="post" id="reseller-form">
                 {% crispy form %}
@@ -16,15 +21,15 @@
             </form>
         </div>
 
-        <div id="no-results" class="bg-info" style="display: none">
-            <h6 class="text-center pt-15 pb-15">No results found</h6>
+        <div id="no-results" class="alert alert-info text-center" role="alert" style="display: none">
+            No results found
         </div>
 
         <div id="results" class="row" style="display: none">
             <div class="form-group col-12">
                 <div class="row">
                     <div class="col-9">
-                        <h4 class="card-title">Max Datas</h4>
+                        <h4 class="card-title">Filtered Data</h4>
                         <table class="table-sm table-bordered table-striped table-hover">
                             <thead>
                             <th>Reseller Name</th>
@@ -43,7 +48,7 @@
                 </div>
             </div>
             <div class="col-12 form-group">
-                <h4 class="card-title">Line Chart</h4>
+                <h4 class="card-title">Chart</h4>
                 <div id="line_chart" style="height: 800px;"></div>
             </div>
         </div>
