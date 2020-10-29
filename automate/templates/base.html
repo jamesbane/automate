@@ -29,6 +29,8 @@
     <link rel="stylesheet" href="{% static 'plugins/owl.carousel/dist/assets/owl.theme.default.min.css' %}">
     <link rel="stylesheet" href="{% static 'dist/css/theme.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/jquery-datetimepicker/jquery.datetimepicker.min.css' %}">
+    <script src="{% static 'src/js/vendor/jquery-3.3.1.min.js' %}"></script>
 </head>
 
 <body>
@@ -40,7 +42,7 @@
                     <button type="button" class="btn-icon mobile-nav-toggle d-lg-none"><span></span></button>
                 </div>
                 <div class="top-menu d-flex align-items-center">
-                    <div class="dropdown">
+                    <!--<div class="dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="notiDropdown" role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                 class="ik ik-bell"></i><span class="badge bg-danger">3</span></a>
@@ -108,15 +110,15 @@
                             <a class="dropdown-item" href="#" data-toggle="tooltip" data-placement="top" title="More"><i
                                     class="ik ik-more-horizontal"></i></a>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="ik ik-user"></i></a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="profile.html"><i
+                            <a class="dropdown-item" href=""><i
                                     class="ik ik-user dropdown-icon"></i> {{ user.first_name }} {{ user.last_name }}
                                 <span class="caret"></span></a>
-                            <a class="dropdown-item" href="#"><i class="ik ik-settings dropdown-icon"></i> Settings</a>
+                            <!--<a class="dropdown-item" href="#"><i class="ik ik-settings dropdown-icon"></i> Settings</a>-->
                             <a class="dropdown-item" href="/accounts/logout/"><i class="ik ik-power dropdown-icon"></i>
                                 Logout</a>
                         </div>
@@ -131,7 +133,7 @@
             <div class="sidebar-header">
                 <a class="header-brand" href="/">
                     <div class="logo-img">
-                        <img src="{% static 'src/img/brand-white.svg' %}" class="header-brand-img" alt="lavalite">
+                        <img src="{% static 'images/301Solutions-Logo.png' %}" class="img-fluid header-brand-img">
                     </div>
                     <span class="text">AutoMate</span>
                 </a>
@@ -145,7 +147,6 @@
                         <div class="nav-item has-sub {% if '/tools/' in request.get_full_path %} active open {% endif %}">
                             <a href="{% url 'tools:index' %}"><i class="ik ik-box"></i><span>Tools</span></a>
                             <div class="submenu-content">
-                                <a href="" class="menu-item">Basic</a>
                                 {% block tools_list %}{% endblock tools_list %}
                             </div>
                         </div>
@@ -170,6 +171,12 @@
                         <div class="nav-item {% if request.get_full_path == '/jobs/' %} active {% endif %}>">
                             <a href="{% url 'tools:process-list' %}"><i class="ik ik-check-circle"></i>Results</a>
                         </div>
+                        {% if user.has_reseller_perms %}
+                            <div class="nav-item {% if request.get_full_path == '/reseller/' %} active {% endif %}>">
+                                <a href="{% url 'reseller:call-count' %}"><i class="ik ik-check-circle"></i>Call
+                                    Count</a>
+                            </div>
+                        {% endif %}
                     </nav>
                 </div>
             </div>
@@ -197,7 +204,7 @@
     <script src="{% static 'plugins/datatables.net-responsive/js/dataTables.responsive.min.js' %} "></script>
     <script src="{% static 'plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js' %} "></script>
     <script src="{% static 'plugins/jvectormap/jquery-jvectormap.min.js' %} "></script>
-    <script src="{% static 'plugins/jvectormap/jquery-jvectormap-world-mill-en.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
 
     <script src="{% static 'plugins/moment/moment.js' %} "></script>
     <script src="{% static 'plugins/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js' %} "></script>
@@ -207,6 +214,7 @@
     <script src="{% static 'js/widgets.js' %} "></script>
     <script src="{% static 'js/charts.js' %} "></script>
     <script src="{% static 'dist/js/theme.min.js' %} "></script>
+    <script src="{% static 'plugins/jquery-datetimepicker/jquery.datetimepicker.full.min.js' %}"></script>
 {% endblock javascript %}
 </body>
 </html>

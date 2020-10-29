@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'automate',
     'tools',
     'sansayvcm_client',
+    'reseller',
 
     # Third Party
     'crispy_forms',
@@ -78,7 +79,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'sniplates',
     'widget_tweaks',
-    'django_extensions'
+    'django_extensions',
+    'django_celery_results',
+    'django_celery_beat',
+    'django_select2'
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -138,14 +142,15 @@ AUTHENTICATION_BACKENDS = [
 # 
 #    }
 # }
+
 if not DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'd10q8ccdiidlvq',
-            'USER': 'qhyghmxpdmyail',
-            'PASSWORD': '8789966b1ae854a0f2ec0f84e411afaf1bce869aef1baa14b6864c90938fb824',
-            'HOST': 'ec2-18-214-211-47.compute-1.amazonaws.com',
+            'NAME': 'dbdva6l9frlj4n',
+            'USER': 'hsijukvgyrmriz',
+            'PASSWORD': '07bc3c22b4c27d2f6e0798eca842c64d8988baf29f7b7decfdc77fbd43464a58',
+            'HOST': 'ec2-34-232-24-202.compute-1.amazonaws.com',
             'PORT': '5432',
         }
     }
@@ -304,3 +309,32 @@ SERVER_EMAIL = env['email']['from_address']
 # =====================================
 ADMINS = env['admins']
 MANAGERS = ADMINS'''
+
+# celery configuration
+CELERY_TIMEZONE = "UTC"
+CELERY_ENABLE_UTC = True
+CELERY_TASK_TRACK_STARTED = True
+if not DEBUG:
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+else:
+    CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_CACHE_BACKEND = 'default'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# django setting.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    },
+    "select2": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+SELECT2_CACHE_BACKEND = "select2"
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

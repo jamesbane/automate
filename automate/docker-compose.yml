@@ -41,6 +41,14 @@ services:
       - ./volumes/postgres/initdb.d:/docker-entrypoint-initdb.d
   redis:
     image: redis
+    
+  celeryworker:
+    build: .
+    depends_on:
+      - redis
+      - db
+    ports: []
+    command: [cd automate && celery -A automate worker -B -l DEBUG]
   nginx:
     image: nginx:1.15-alpine
     volumes:

@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="card-header justify-content-between">
+        <h2 class="text-primary"><i class="ik ik-info"></i> Reseller Call Count</h2>
+    </div>
+    <div class="card-body">
+        <h4>Summary of actions:</h4>
+        <pre>
+    Choose a Reseller or Resellers and Search
+    The active call counts will be displayed for the selected Resellers within the Date/Time range input.
+    The data point that has the MAX calls within the range of all selected Resellers will be displayed in the table.
+    You can also export all data points within the range.
+        </pre>
+        <div class="form-group">
+            <form method="post" id="reseller-form">
+                {% crispy form %}
+                <input type="button" value="Search" class="btn btn-default" onclick="calcCounts()">
+            </form>
+        </div>
+
+        <div id="no-results" class="alert alert-info text-center" role="alert" style="display: none">
+            No results found
+        </div>
+
+        <div id="results" class="row" style="display: none">
+            <div class="form-group col-12">
+                <div class="row">
+                    <div class="col-9">
+                        <h4 class="card-title">Filtered Data</h4>
+                        <table class="table-sm table-bordered table-striped table-hover">
+                            <thead>
+                            <th>Reseller Name</th>
+                            <th>Sum Plot</th>
+                            <th>Max Count</th>
+                            <th>Datetime</th>
+                            </thead>
+                            <tbody id="reports"></tbody>
+                        </table>
+                    </div>
+                    <div class="col-3 text-right">
+                        <button class="btn btn-success float-right" onclick="exportCSV()"><i class="fa fa-download"></i>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 form-group">
+                <h4 class="card-title">Chart</h4>
+                <div id="line_chart" style="height: 800px;"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'plugins/amcharts/amcharts.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/serial.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/themes/light.js' %}"></script>
+    <script src="{% static 'plugins/amcharts/animate.min.js' %}"></script>
+    {% if form.javascript %}
+        <script src="{{ form.javascript }}"></script>
+    {% endif %}
+
+    <script>
+
+        $(function () {
+            $('.datetimeinput').datetimepicker();
+            $('.datetimeinput').next().click(function () {
+                $(this).prev().datetimepicker('show');
+            });
+        });
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function exportCSV() {
+            datas = $("#reseller-form").serializeArray()
+            $.ajax({
+                data: datas,
+                type: 'post',
+                url: "{% url 'reseller:export-csv' %}",
+                success: function (res) {
+                    var element = document.createElement('a');
+                    element.href = 'data:text/csv;charset=utf-8,' + encodeURI(res);
+                    element.target = '_blank';
+                    var now = new Date();
+                    let formattedDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getHours() + "-" + now.getMinutes() + "-" + now.getSeconds();
+                    element.download = 'reseller_count_' + formattedDate + '.csv';
+                    element.click();
+                },
+                fail: function (res) {
+                }
+            });
+        }
+
+        function calcCounts() {
+            $("#reports").empty();
+            datas = $("#reseller-form").serializeArray()
+            request_data = {}
+            $.ajax({
+                data: datas,
+                type: 'post',
+                success: function (res) {
+                    if (res['status'] == 'success') {
+                        $("#no-results").css('display', 'none');
+                        $("#results").css('display', 'block');
+                        var graphs = [];
+                        var dataProviders = [];
+                        var sum_count = 0;
+                        var max_sum = 0;
+                        var max_date = '';
+                        for (let i = 0; i < Object.keys(res['count_data']).length; i++) {
+                            date = Object.keys(res['count_data'])[i];
+                            count_data = res['count_data'][date];
+                            sum_count = 0
+                            for (let j = 0; j < count_data.length; j++) {
+                                sum_count += count_data[j]['count'];
+                            }
+                            if (max_sum < sum_count) {
+                                max_sum = sum_count;
+                                max_date = date;
+                            }
+
+                        }
+                        for (let i = 0; i < Object.keys(res['datas']).length; i++) {
+                            territory_id = Object.keys(res['datas'])[i];
+                            territory_data = res['datas'][territory_id];
+                            for (let j = 0; j < territory_data.length; j++) {
+                                sum_count += territory_data[j]['count'];
+                                if (!dataProviders[j]) {
+                                    dataProviders[j] = {}
+                                }
+                                dataProviders[j][territory_data[j]['name']] = territory_data[j]['count'];
+                                dataProviders[j]['datetime'] = territory_data[j]['created_at'];
+                            }
+                            graphs.push({
+                                "id": territory_id,
+                                "valueAxis": "v1",
+                                "bullet": "round",
+                                "bulletBorderAlpha": 1,
+                                "bulletColor": "#FFFFFF",
+                                "bulletSize": 8,
+                                "lineThickness": 3,
+                                "lineColor": getRandomColor(),
+                                "title": territory_data[0]['name'],
+                                "useLineColorForBulletBorder": true,
+                                "valueField": territory_data[0]['name'],
+                                "balloonText": "[[title]]<br /><b style='font-size: 130%'>[[value]]</b>"
+                            });
+                            var max_count = 0;
+                            for (let j = 0; j < res['count_data'][max_date].length; j++) {
+                                if (res['count_data'][max_date][j]['id'] == territory_id) {
+                                    max_count = res['count_data'][max_date][j]['count'];
+                                }
+                            }
+                            $("#reports").append("<tr>" +
+                                "<td>" + territory_data[0]['name'] + "</td>" +
+                                "<td>" + sum_count + "</td>" +
+                                "<td>" + max_count + "</td>" +
+                                "<td>" + max_date + "</td>" +
+                                "</tr>");
+                        }
+
+                        var chart = AmCharts.makeChart("line_chart", {
+                            "type": "serial",
+                            "theme": "light",
+                            "dataDateFormat": "MMM-DD",
+                            "precision": 2,
+                            "dataProvider": dataProviders,
+                            "valueAxes": [{
+                                "id": "v1",
+                                "position": "left",
+                                "autoGridCount": true
+                            }, {
+                                "id": "v2",
+                                "gridAlpha": 0,
+                                "autoGridCount": true
+                            }],
+                            "graphs": graphs,
+                            "chartCursor": {
+                                "valueLineEnabled": false,
+                                "valueLineBalloonEnabled": true,
+                                "cursorAlpha": 0,
+                                "valueLineAlpha": 0.2
+                            },
+                            "categoryField": "datetime",
+                            "categoryAxis": {
+                                "parseDates": false,
+                                "axisAlpha": 0,
+                                "lineAlpha": 0,
+                                "gridAlpha": 0,
+                                "minorGridEnabled": true,
+                                "autoRotateAngle": 90,
+                                "autoRotateCount": 10
+                            },
+                            "legend": {
+                                "useGraphSettings": true,
+                                "position": "top"
+                            },
+                            "balloon": {
+                                "borderThickness": 1,
+                                "shadowAlpha": 0,
+                            },
+                            "export": {
+                                "enabled": true
+                            }
+                        });
+                    } else {
+                        $("#no-results").css('display', 'block');
+                        $("#results").css('display', 'none');
+                    }
+                },
+                fail: function (res) {
+
+                }
+            });
+        }
+    </script>
+{% endblock %}
