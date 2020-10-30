@@ -1,4 +1,0 @@
-[submodule "automate/lib/bw"]
-	path = automate/lib/bw
-	url = https://gitlab.com/301-solutions/toolkit/bw.git
-
