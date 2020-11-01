@@ -338,3 +338,4 @@ CACHES = {
 SELECT2_CACHE_BACKEND = "select2"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
