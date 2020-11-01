@@ -237,6 +237,11 @@ RQ_QUEUES = {
         'PORT': 6379,
         'DB': 0,
         'DEFAULT-TIMEOUT': 360,
+    },
+    'vcm': {
+        'HOST': 'localhost',
+        'POST': 6379
+        'DB': 0
     }
 }
 '''RQ_QUEUES = {
