@@ -67,12 +67,13 @@
     {% endif %}
 
     <script>
-
         $(function () {
             $('.datetimeinput').datetimepicker();
             $('.datetimeinput').next().click(function () {
                 $(this).prev().datetimepicker('show');
             });
+
+            $("#id_timezone_offset").val(new Date().getTimezoneOffset());
         });
 
         function getRandomColor() {

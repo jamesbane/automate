@@ -1,5 +1,7 @@
 import csv
+import datetime
 
+import pytz
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
@@ -27,11 +29,17 @@ class CallCountFormView(LoginRequiredMixin, FormView):
         reseller_names = ''
         start_datetime = None
         end_datetime = None
+        timezone_offset = 0
         if form.is_valid():
             select_all = form.cleaned_data['select_all']
             reseller_names = form.cleaned_data['reseller_names']
             start_datetime = form.cleaned_data['start_datetime']
+            timezone_offset = int(form.cleaned_data['timezone_offset'])
+            if start_datetime is not None:
+                start_datetime = start_datetime + datetime.timedelta(minutes=timezone_offset)
             end_datetime = form.cleaned_data['end_datetime']
+            if end_datetime is not None:
+                end_datetime = end_datetime + datetime.timedelta(minutes=timezone_offset)
         else:
             print(form.errors)
 
@@ -51,18 +59,19 @@ class CallCountFormView(LoginRequiredMixin, FormView):
         for item in items:
             if item.territory_id not in datas:
                 datas[item.territory_id] = []
+            created_at = item.created_at - datetime.timedelta(minutes=timezone_offset)
             datas[item.territory_id].append({
                 'name': item.territory_name,
                 'count': item.count_external,
-                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                'created_at': created_at.strftime("%Y-%m-%d %H:%M:%S")
             })
-            if item.created_at.strftime("%Y-%m-%d %H:%M:%S") not in count_data:
-                count_data[item.created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
-            count_data[item.created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
+            if created_at.strftime("%Y-%m-%d %H:%M:%S") not in count_data:
+                count_data[created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
+            count_data[created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
                 'id': item.territory_id,
                 'name': item.territory_name,
                 'count': item.count_external,
-                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                'created_at': created_at.strftime("%Y-%m-%d %H:%M:%S")
             })
         return JsonResponse({
             'status': 'success' if len(items) > 0 else 'error',
@@ -80,11 +89,17 @@ class ExportCSVFormView(LoginRequiredMixin, FormView):
         reseller_names = ''
         start_datetime = None
         end_datetime = None
+        timezone_offset = 0
         if form.is_valid():
             select_all = form.cleaned_data['select_all']
             reseller_names = form.cleaned_data['reseller_names']
             start_datetime = form.cleaned_data['start_datetime']
+            timezone_offset = int(form.cleaned_data['timezone_offset'])
+            if start_datetime is not None:
+                start_datetime = start_datetime + datetime.timedelta(minutes=timezone_offset)
             end_datetime = form.cleaned_data['end_datetime']
+            if end_datetime is not None:
+                end_datetime = end_datetime + datetime.timedelta(minutes=timezone_offset)
         else:
             print(form.errors)
 
@@ -101,13 +116,14 @@ class ExportCSVFormView(LoginRequiredMixin, FormView):
         items = ResellerCount.objects.filter(q).all()
         datas = {}
         for item in items:
-            if item.created_at.strftime("%Y-%m-%d %H:%M:%S") not in datas:
-                datas[item.created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
-            datas[item.created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
+            created_at = item.created_at - datetime.timedelta(minutes=timezone_offset)
+            if created_at.strftime("%Y-%m-%d %H:%M:%S") not in datas:
+                datas[created_at.strftime("%Y-%m-%d %H:%M:%S")] = []
+            datas[created_at.strftime("%Y-%m-%d %H:%M:%S")].append({
                 'id': item.territory_id,
                 'name': item.territory_name,
                 'count': item.count_external,
-                'created_at': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                'created_at': created_at.strftime("%Y-%m-%d %H:%M:%S")
             })
 
         response = HttpResponse(content_type='text/csv')

@@ -18,6 +18,7 @@ class CallCountForm(forms.Form):
                                          input_formats=['%Y/%m/%d %H:%M'])
     end_datetime = forms.DateTimeField(label='End Datetime', required=False,
                                        input_formats=['%Y/%m/%d %H:%M'])
+    timezone_offset = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         user_id = kwargs.pop('user_id', None)
@@ -31,7 +32,7 @@ class CallCountForm(forms.Form):
         self.helper.layout = Layout(
             Column(
                 Div(
-                    'select_all', 'reseller_names'
+                    'select_all', 'reseller_names', 'timezone_offset'
                 ),
                 Row(
                     Div(
