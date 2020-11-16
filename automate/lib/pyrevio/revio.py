@@ -5,6 +5,7 @@ import ssl
 
 from requests import adapters
 from urllib3 import poolmanager
+from django.conf import settings
 
 class TLSAdapter(adapters.HTTPAdapter):
 
@@ -41,7 +42,7 @@ class RevClient:
 
         session = requests.session()
         session.mount('https://', TLSAdapter())
-        response = session.get(url)
+        response = session.get(url, auth=('301solutions_sandbox@impulse_sandbox', 'NePJRUHBJioWKzr9EJ6PwwXEvJNB^B6jCqNTJM,qqCs7JQyb7(YDb'))
 
         data = json.loads(response.text)
         print(data)
