@@ -58,8 +58,8 @@ class VcmRoutes(APIView):
 
     def post(self, request, **kwargs):
         data = json.loads(request.body.decode("utf-8"))
-        # Only pay attention to type id 1 events
-        if data['metadata']['inventory_type_id'] != 1:
+        # Only pay attention to type id 1 events (dev) or 5 events (production)
+        if data['metadata']['inventory_type_id'] not in [1, 5]:
             return Response({'status': 'Ok'}, status=status.HTTP_200_OK)
 
         created = data['created_date'] if data['created_date'] != None else datetime.now()

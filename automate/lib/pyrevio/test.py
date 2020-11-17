@@ -1,6 +1,8 @@
 from revio import RevClient
 
 rev = RevClient()
-data = rev.getInventoryItemNew('8053572512')
+inventory = rev.getInventoryItem('8053572512')
 
-
+for record in inventory['records']:
+    customer = rev.getCustomerProfile(record['customer_id'])
+    print(customer['customer_id'], customer['billing_address']['company_name'])
