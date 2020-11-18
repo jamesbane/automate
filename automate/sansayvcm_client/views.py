@@ -19,8 +19,9 @@ from rest_framework.views import exception_handler
 #Automate
 import sansayvcm_client.forms
 from sansayvcm_client.vcmclient import VcmClient
-from sansayvcm_client.models import RouteTableLog, VcmRouteQueue
+from sansayvcm_client.models import RouteTableLog, VcmRouteQueue, SansayCluster
 from sansayvcm_client.serializers import VcmRouteSerializer, VcmRouteMetadataSerializer
+from lib.pyrevio.revio import RevClient
 
 class IndexView(TemplateView):
     template_name = 'sansayvcm_client/index.html'
@@ -83,6 +84,25 @@ class VcmRoutes(APIView):
         #    number = number.replace('+1', '')
 
         alias = 'Cust ' + str(data['customer_id']) + ' ' + number
+
+        # pull number details from RevIO
+        # set safe defaults for field values
+        cluster_id = 1 
+        tid = 20
+        #rdid = 554
+
+        rev = RevClient()
+        details = rev.getInventoryItem(number)
+        for record in details['records']:
+            for field in record['fields']:
+                if field['label'] == 'vcm_cluster':
+                    cluster_id = field['value']
+                if field['label'] == 'vcm_tid':
+                    tid = field['value']
+                if field['label'] == 'vcm_rdid':
+                    rdid = field['value']
+        
+        cluster = SansayCluster.objects.get(pk=cluster_id)
         
         xmlCfg = etree.parse(os.path.abspath('sansayvcm_client/configs/route.xml'))
         for field in xmlCfg.iter():
@@ -90,6 +110,8 @@ class VcmRoutes(APIView):
                 field.text = alias
             if field.tag == 'digitMatch':
                 field.text = number
+            if field.tag == 'tid':
+                field.text = tid
 
         queue = VcmRouteQueue(
             uuid=kwargs['uuid'],
@@ -98,7 +120,8 @@ class VcmRoutes(APIView):
             action=data['status'],
             create_date=created, 
             xmlcfg=str(etree.tostring(xmlCfg), 'utf-8'), 
-            status='pending'
+            status='pending',
+            cluster=cluster
         )
         queue.save()
 

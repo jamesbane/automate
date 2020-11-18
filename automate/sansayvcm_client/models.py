@@ -48,6 +48,7 @@ class VcmRouteQueue(models.Model):
     create_date = models.DateTimeField(null=False, default=datetime.now)
     xmlcfg = models.TextField(null=False)
     status = models.CharField(max_length=20)
+    cluster = models.ForeignKey(SansayCluster, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ('-create_date',)

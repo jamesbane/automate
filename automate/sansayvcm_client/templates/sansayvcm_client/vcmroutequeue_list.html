@@ -19,7 +19,10 @@
             <tbody>
                 {% for object in object_list %}
                 <tr>
-                    <td>{{object.number}}</td>
+                    <td>
+                        {{object.number}}<br />
+                        {{object.cluster.name}}
+                    </td>
                     <td>{{object.alias}}</td>
                     <td>{{object.action}}</td>
                     <td>{{object.get_status}}</td>
