@@ -83,15 +83,19 @@ class VcmRoutes(APIView):
         #if '+1' in number:
         #    number = number.replace('+1', '')
 
-        alias = 'Cust ' + str(data['customer_id']) + ' ' + number
-
-        # pull number details from RevIO
+        # pull number details and customer profile from RevIO
         # set safe defaults for field values
         cluster_id = 1 
         tid = 20
-        #rdid = 554
+        rdid = 554
 
         rev = RevClient()
+
+        # Pull customer profile
+        profile = rev.getCustomerProfile(data['customer_id'])
+        alias = profile['billing_address']['company_name']
+
+        # Pull inventory item details
         details = rev.getInventoryItem(number)
         for record in details['records']:
             for field in record['fields']:
@@ -112,6 +116,8 @@ class VcmRoutes(APIView):
                 field.text = number
             if field.tag == 'tid':
                 field.text = tid
+            if field.tag == 'rdid':
+                field.text = rdid
 
         queue = VcmRouteQueue(
             uuid=kwargs['uuid'],
