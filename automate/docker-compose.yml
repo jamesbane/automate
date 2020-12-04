@@ -48,7 +48,9 @@ services:
       - redis
       - db
     ports: []
-    command: [cd automate && celery -A automate worker -B -l DEBUG]
+    volumes:
+      - .:/src
+    command: celery -A automate worker -B -l DEBUG
   nginx:
     image: nginx:1.15-alpine
     volumes:
